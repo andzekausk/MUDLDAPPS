@@ -4,6 +4,7 @@ import { loginWithGoogle, logout } from "../firebase";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
+    isAllowed: false,
     roles: [],
     currentRole: "",
   }),
@@ -21,10 +22,16 @@ export const useAuthStore = defineStore("auth", {
   
           const data = await response.json();
           
+          if(!data.isAllowed){
+            alert("Neatļauts domēns!");
+            return;
+          }
+
           if (!response.ok) throw new Error("Failed to verify login");
 
           this.user = { email: data.email };
           this.roles = data.roles;
+          this.isAllowed = data.isAllowed;
           this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
 
         } catch (error) {
@@ -53,6 +60,7 @@ export const useAuthStore = defineStore("auth", {
     
     async logout() {
       this.user = null;
+      this.isAllowed = false;
       this.roles = [];
       this.currentRole = "";
     },

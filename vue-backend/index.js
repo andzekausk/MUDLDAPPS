@@ -45,6 +45,11 @@ async function getGoogleUserRoles(email) {
   return rows.map(row => row.name);
 }
 
+async function getAllowedDomains() {
+  const [rows] = await pool.query("SELECT domain FROM allowed_domains");
+  return rows.map(row => row.domain);
+}
+
 app.get("/", (req, res) => {
   res.json({ message: "Mašīnmācīšanās un datorredzes laboratorijas datoru attālinātas piekļuves pārvaldības sistēma (MUDLDAPPS)" });
 });
@@ -55,31 +60,38 @@ app.post("/login", async (req, res) => {
   
   if(idToken){    // Firebase
     try {
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const email = decodedToken.email;
-        
-        const roles = await getGoogleUserRoles(email);
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const email = decodedToken.email;
+      const allowedDomains = await getAllowedDomains();
+      const isAllowed = allowedDomains.includes(email.split("@")[1]);
 
-        res.json({email, roles});
+      if (!isAllowed) {
+        return res.status(403).json({ message: "Email domain not allowed" });
+      }
+
+
+      const roles = await getGoogleUserRoles(email);
+
+      res.json({email, roles, isAllowed});
     } catch (error) {
-        console.error("Error verifying token:", error);
-        res.status(401).json({ message: "Unauthorized" });
+      console.error("Error verifying token:", error);
+      res.status(401).json({ message: "Unauthorized" });
     }
   } else if (username && password){   //MySql
       try{
-          const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
-          if (rows.length === 0) return res.status(401).json({ message: "Invalid credentials" });
+        const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+        if (rows.length === 0) return res.status(401).json({ message: "Invalid credentials" });
 
-          const user = rows[0];
-          if (!bcrypt.compareSync(password, user.password_hash)) {
-              return res.status(401).json({ message: "Invalid credentials" });
-          }
+        const user = rows[0];
+        if (!bcrypt.compareSync(password, user.password_hash)) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
 
-          const roles = await getUserRoles(user.username);
-          return res.json({ email: user.email, roles, isAllowed: true });
+        const roles = await getUserRoles(user.username);
+        return res.json({ email: user.email, roles, isAllowed: true });
       } catch (error) {
-          console.error("Login error:", error);
-          res.status(500).json({ message: "Server error" });
+        console.error("Login error:", error);
+        res.status(500).json({ message: "Server error" });
       }
   }
 
