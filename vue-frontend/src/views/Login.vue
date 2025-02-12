@@ -1,6 +1,7 @@
 <template>
     <div>
       <!-- username login -->
+       <h1>Login lapa</h1>
       <div>
         <input v-model="username" placeholder="Username" />
         <input v-model="password" type="password" placeholder="Password" />

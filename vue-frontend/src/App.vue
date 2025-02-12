@@ -12,9 +12,9 @@
       <option v-for="role in authStore.roles" :key="role" :value="role">{{ role }}</option>
       </select>
     </nav>
-    <nav v-else>
+    <!-- <nav v-else>
       <router-link v-if="!authStore.user" to="/login">Login </router-link>
-    </nav>
+    </nav> -->
     <router-view />
   </div>
 </template>
