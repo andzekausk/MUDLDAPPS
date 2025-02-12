@@ -1,27 +1,26 @@
 <template>
   <div>
-    <h1>{{ message }}</h1>
+    <nav>
+      <router-link to="/">Home</router-link> 
+      <router-link v-if="!authStore.user" to="/login">Login</router-link> 
+      <router-link v-if="authStore.currentRole=='administrators'" to="/admin">Admin</router-link> 
+      <button v-if="authStore.user" @click="authStore.logout">Logout</button>
+      <select v-if="authStore.roles.length > 1" v-model="authStore.currentRole">
+      <option v-for="role in authStore.roles" :key="role" :value="role">{{ role }}</option>
+      </select>
+    </nav>
+
+    <router-view />
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { useAuthStore } from "./store/auth";
 
 export default {
-  data() {
-    return {
-      message: "Loading..."
-    };
-  },
-  mounted() {
-    axios.get("http://localhost:3000/")
-      .then(response => {
-        this.message = response.data.message;
-      })
-      .catch(error => {
-        console.error("Error fetching message:", error);
-        this.message = "Failed to load message.";
-      });
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
   }
 };
 </script>
