@@ -29,7 +29,6 @@ export const useAuthStore = defineStore("auth", {
     },
     
     async logout() {
-    //   await logout();
       this.user = null;
       this.roles = [];
       this.currentRole = "";

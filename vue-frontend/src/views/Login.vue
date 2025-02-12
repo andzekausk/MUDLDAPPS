@@ -12,8 +12,10 @@
   <script setup>
     import { useAuthStore } from "./../store/auth";
     import { ref } from "vue";
+    import { useRouter } from "vue-router";
     
     const authStore = useAuthStore(); 
+    const router = useRouter();
     const username = ref('');
     const password = ref('');
   
@@ -21,7 +23,8 @@
     const usernameLogin = async () => {
       try {
         await authStore.loginWithUsername(username.value, password.value);
-      } catch (error) {
+        router.push('/');
+    } catch (error) {
         console.error("Login error:", error);
       }
     };

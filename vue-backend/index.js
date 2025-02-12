@@ -29,7 +29,7 @@ async function getUserRoles(username) {
 }
 
 app.get("/", (req, res) => {
-  res.json({ message: "Hello World from Backend!" });
+  res.json({ message: "Mašīnmācīšanās un datorredzes laboratorijas datoru attālinātas piekļuves pārvaldības sistēma (MUDLDAPPS)" });
 });
 
 // Login Route
