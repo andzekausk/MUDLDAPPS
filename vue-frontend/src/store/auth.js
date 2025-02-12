@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { loginWithGoogle, logout } from "../firebase";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -7,7 +8,29 @@ export const useAuthStore = defineStore("auth", {
     currentRole: "",
   }),
   actions: {
+    async loginWithGoogle() {
+        const loggedUser = await loginWithGoogle();
+        if (!loggedUser) return;
+        
+        try {
+          const response = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken: loggedUser.idToken }),
+          });
+  
+          const data = await response.json();
+          
+          if (!response.ok) throw new Error("Failed to verify login");
 
+          this.user = { email: data.email };
+          this.roles = data.roles;
+          this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
+
+        } catch (error) {
+          console.error("Login error:", error);
+        }
+    },
     async loginWithUsername(username, password) {
       try {
         const response = await fetch("http://localhost:3000/login", {
