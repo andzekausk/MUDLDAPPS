@@ -23,11 +23,12 @@ const pool = mysql.createPool({
 
 async function getUserRoles(username) {
   const [rows] = await pool.query(`
-      SELECT roles.name 
-      FROM user_roles
-      JOIN users ON user_roles.user_id = users.user_id
-      JOIN roles ON user_roles.role_id = roles.role_id
-      WHERE users.username = ?
+    SELECT roles.name
+    FROM local_users
+    JOIN users ON local_users.user_id = users.user_id
+    JOIN user_roles ON users.user_id = user_roles.user_id
+    JOIN roles ON user_roles.role_id = roles.role_id
+    WHERE local_users.username = ?
   `, [username]);
 
   return rows.map(row => row.name);
@@ -35,11 +36,12 @@ async function getUserRoles(username) {
 
 async function getGoogleUserRoles(email) {
   const [rows] = await pool.query(`
-      SELECT roles.name 
-      FROM google_user_roles
-      JOIN google_users ON google_user_roles.google_user_id = google_users.google_user_id
-      JOIN roles ON google_user_roles.google_role_id = roles.role_id
-      WHERE google_users.email = ?
+    SELECT roles.name 
+    FROM user_roles
+    JOIN users ON user_roles.user_id = users.user_id
+    JOIN roles ON user_roles.role_id = roles.role_id
+    WHERE users.provider = "google"
+    AND users.email = ?
   `, [email]);
 
   return rows.map(row => row.name);
@@ -79,7 +81,12 @@ app.post("/login", async (req, res) => {
     }
   } else if (username && password){   //MySql
       try{
-        const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+        // const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+        const [rows] = await pool.query(`
+          SELECT * FROM users
+          JOIN local_users ON users.user_id = local_users.user_id
+          WHERE local_users.username = ?
+          `, [username]);
         if (rows.length === 0) return res.status(401).json({ message: "Invalid credentials" });
 
         const user = rows[0];
