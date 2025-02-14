@@ -40,7 +40,7 @@ async function getGoogleUserRoles(email) {
     FROM user_roles
     JOIN users ON user_roles.user_id = users.user_id
     JOIN roles ON user_roles.role_id = roles.role_id
-    WHERE users.provider = "google"
+    WHERE users.user_type = "google"
     AND users.email = ?
   `, [email]);
 
