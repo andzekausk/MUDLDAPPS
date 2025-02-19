@@ -1,7 +1,7 @@
 <template>
   <div>
     <nav  v-if="authStore.user">
-      <router-link to="/">Datoru pārskats </router-link> |
+      <router-link to="/computers_overview">Datoru pārskats </router-link> |
       <router-link to="/">Apskatīt resursu aizņemtības pārskatu </router-link> |
       <router-link v-if="authStore.currentRole=='lietotājs'" to="/">Pieteikšanās resursu lietošanai </router-link> |
       <router-link v-if="authStore.currentRole=='pārvaldnieks'" to="/">Rezervāciju veidošana </router-link> |

@@ -2,12 +2,14 @@ import { createRouter, createWebHistory } from "vue-router";
 import Login from "./views/Login.vue";
 import Home from "./views/Home.vue";
 import Admin from "./views/Admin.vue";
+import ComputersOverview from "./views/ComputersOverview.vue";
 import { useAuthStore } from "./store/auth";
 
 const routes = [
     { path: "/", component: Home, meta: { requiresAuth: true }},
     { path: "/login", component: Login },
-    { path: "/admin", component: Admin, meta: { requiresAuth: true }}
+    { path: "/admin", component: Admin, meta: { requiresAuth: true }},
+    { path: "/computers_overview", component: ComputersOverview, meta: { requiresAuth: true }}
 ];
 
 const router = createRouter({

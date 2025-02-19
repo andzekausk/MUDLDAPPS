@@ -129,3 +129,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 vue-backend/firebase-adminsdk.json
+start_project.bat

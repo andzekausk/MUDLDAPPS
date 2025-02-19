@@ -52,6 +52,31 @@ async function getAllowedDomains() {
   return rows.map(row => row.domain);
 }
 
+async function getComputers() {
+  const [rows] = await pool.query(`
+    SELECT 
+        c.computer_id, c.name AS computer_name,
+        os.name AS os_name, os.version AS os_version,
+        GROUP_CONCAT(DISTINCT comp.name ORDER BY comp.name ASC) AS components,
+        GROUP_CONCAT(DISTINCT s.name ORDER BY s.name ASC) AS software
+    FROM computers c
+    LEFT JOIN computer_os co ON c.computer_id = co.computer_id
+    LEFT JOIN os ON co.os_id = os.os_id
+    LEFT JOIN computer_components cc ON c.computer_id = cc.computer_id
+    LEFT JOIN components comp ON cc.component_id = comp.component_id
+    LEFT JOIN computer_os_software cos ON co.computer_os_id = cos.computer_os_id
+    LEFT JOIN software s ON cos.software_id = s.software_id
+    GROUP BY c.computer_id, c.name, os.name, os.version;
+  `);
+  return rows.map(row => ({
+    computer_name: row.computer_name,
+    os_name: row.os_name,
+    os_version: row.os_version,
+    components: row.components ? row.components.split(',') : [],
+    software: row.software ? row.software.split(',') : []
+  }));
+}
+
 app.get("/", (req, res) => {
   res.json({ message: "Mašīnmācīšanās un datorredzes laboratorijas datoru attālinātas piekļuves pārvaldības sistēma (MUDLDAPPS)" });
 });
@@ -81,7 +106,6 @@ app.post("/login", async (req, res) => {
     }
   } else if (username && password){   //MySql
       try{
-        // const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
         const [rows] = await pool.query(`
           SELECT * FROM users
           JOIN local_users ON users.user_id = local_users.user_id
@@ -104,6 +128,15 @@ app.post("/login", async (req, res) => {
 
 });
 
+app.get("/api/computers", async (req, res) => {
+  try {
+    const computers = await getComputers();
+    res.json({ computers });
+  } catch (error) {
+    console.error('Error fetching computers:', error);
+    res.status(500).json({ message: 'Error fetching computers' });
+  }
+});
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
