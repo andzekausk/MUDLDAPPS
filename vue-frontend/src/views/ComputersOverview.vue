@@ -17,18 +17,22 @@ onMounted(fetchComputers);
 </script>
 
 <template>
-  <div class="computers-container">
-    <h1>Datoru pārskats</h1>
-    <div class="computer-cards">
-      <div v-for="computer in computers" :key="computer.computer_id" class="computer-card">
-        <h2>{{ computer.computer_name }}</h2>
-        <p><strong>OS:</strong> {{ computer.os_name }} ({{ computer.os_version }})</p>
-        <p><strong>Komponentes:</strong> {{ computer.components.length > 0 ? computer.components.join(', ') : "Nav pieejamas" }}</p>
-        <p><strong>Programmatūra:</strong> {{ computer.software.length > 0 ? computer.software.join(', ') : "Nav instalēta" }}</p>
+    <div class="computers-container">
+      <h1>Datoru pārskats</h1>
+      <div class="computer-cards">
+        <div v-for="computer in computers" :key="computer.computer_id" class="computer-card">
+          <h2>{{ computer.computer_name }}</h2>
+          <p><strong>Komponentes:</strong> {{ computer.components.join(', ') }}</p>
+          <div v-for="os in computer.os_details" :key="os.os_name">
+            <p><strong>OS:</strong> {{ os.os_name }} ({{ os.os_version }})</p>
+            <p><strong>Programmatūra:</strong> 
+              {{ os.software.length > 0 ? os.software.join(', ') : "Nav instalēta" }}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</template>
+  </template>
 
 <style scoped>
 .computers-container {
