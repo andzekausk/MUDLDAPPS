@@ -6,6 +6,7 @@ require("dotenv").config();
 
 const computerRoutes = require("./routes/computerRoutes");
 const authRoutes = require("./routes/authRoutes");
+const calendarRoutes = require("./routes/calendarRoutes");
 
 const app = express();
 app.use(cors());
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 
 app.use("/api", computerRoutes);
 app.use("/", authRoutes);
+app.use("/api", calendarRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {

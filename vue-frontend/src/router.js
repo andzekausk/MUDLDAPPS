@@ -3,13 +3,16 @@ import Login from "./views/Login.vue";
 import Home from "./views/Home.vue";
 import Admin from "./views/Admin.vue";
 import ComputersOverview from "./views/ComputersOverview.vue";
+import ReservationOverview from "./views/ReservationOverview.vue";
 import { useAuthStore } from "./store/auth";
 
 const routes = [
     { path: "/", component: Home, meta: { requiresAuth: true }},
     { path: "/login", component: Login },
     { path: "/admin", component: Admin, meta: { requiresAuth: true }},
-    { path: "/computers_overview", component: ComputersOverview, meta: { requiresAuth: true }}
+    { path: "/computers_overview", component: ComputersOverview, meta: { requiresAuth: true }},
+    { path: "/reservation_overview", component: ReservationOverview, meta: { requiresAuth: true }}
+
 ];
 
 const router = createRouter({
