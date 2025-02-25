@@ -1,97 +1,46 @@
-<!-- <template>
-    <v-container>
-      <v-row>
-        <v-col>
-          <v-calendar
-            v-model="focus"
-            ref="calendar"
-            type="week"
-            :events="events"
-          ></v-calendar>
-        </v-col>
-      </v-row>
-    </v-container>
-  </template>
-  
-  <script>
-  import axios from "axios";
-  
-  export default {
-    data() {
-      return {
-        focus: new Date().toISOString().substr(0, 10),
-        events: [],
-      };
-    },
-    // async created() {
-    //   try {
-    //     const response = await axios.get("http://localhost:3000/api/reservations");
-    //     this.events = response.data;
-    //   } catch (error) {
-    //     console.error("Error loading reservations:", error);
-    //   }
-    // },
-    async created() {
-        try {
-            const response = await axios.get("http://localhost:3000/api/reservations");
-            console.log("API response:", response.data); // Pārbauda, kādi dati nāk no backend
-            this.events = response.data.map(event => ({
-            ...event,
-            start: new Date(event.start), // Pārliecinās, ka Vue pusē arī ir Date objekti
-            end: new Date(event.end),
-            }));
-        } catch (error) {
-            console.error("Error loading reservations:", error);
-        }
-    },
-
-  };
-  </script>
-   -->
-
-   <template>
+<template>
     <div>
-      <v-sheet
-        class="d-flex"
-        height="54"
-        tile
-      >
-        <v-select
-          v-model="type"
-          :items="types"
-          class="ma-2"
-          density="compact"
-          label="View Mode"
-          variant="outlined"
-          hide-details
-        ></v-select>
-        <v-select
-          v-model="weekday"
-          :items="weekdays"
-          class="ma-2"
-          density="compact"
-          label="weekdays"
-          variant="outlined"
-          hide-details
-        ></v-select>
-      </v-sheet>
-      <v-sheet>
-        <v-calendar
-          ref="calendar"
-          v-model="value"
-          :events="events"
-          :view-mode="type"
-          :weekdays="weekday"
-        ></v-calendar>
-      </v-sheet>
+        <v-sheet
+            class="d-flex"
+            height="54"
+            tile
+        >
+            <v-select
+                v-model="type"
+                :items="types"
+                class="ma-2"
+                density="compact"
+                label="View Mode"
+                variant="outlined"
+                hide-details
+            ></v-select>
+            <v-select
+                v-model="weekday"
+                :items="weekdays"
+                class="ma-2"
+                density="compact"
+                label="weekdays"
+                variant="outlined"
+                hide-details
+            ></v-select>
+        </v-sheet>
+        <v-sheet>
+            <v-calendar
+                ref="calendar"
+                v-model="value"
+                :events="events"
+                :view-mode="type"
+                :weekdays="weekday"
+            ></v-calendar>
+        </v-sheet>
     </div>
-  </template>
+</template>
   <script>
     import { useDate } from 'vuetify'
   
     export default {
       data: () => ({
-        type: 'month',
+        type: 'week',
         types: ['month', 'week', 'day'],
         weekday: [0, 1, 2, 3, 4, 5, 6],
         weekdays: [
