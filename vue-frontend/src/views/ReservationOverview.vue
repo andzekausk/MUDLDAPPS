@@ -14,6 +14,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -44,9 +45,7 @@ export default {
         firstDay: 1, 
         locale: 'lv',
         editable: true,
-        events: [
-          { title: 'Event Now', start: new Date() }
-        ],
+        events: [],
         dateClick: this.handleDateClick,
         buttonText: {
           today: 'Šodien',
@@ -60,8 +59,26 @@ export default {
     }
   },
 
-  methods: {
+  async mounted() {
+    await this.fetchReservations();
+  },
 
+  methods: {
+    async fetchReservations() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/reservations");
+        this.calendarOptions.events = response.data.map(event => ({
+          title: event.name,
+          start: event.start,
+          end: event.end,
+          backgroundColor: event.color,
+          borderColor: event.color,
+          textColor: "#1E272E"
+        }));
+      } catch (error) {
+        console.error("Kļūda ielādējot rezervācijas:", error);
+      }
+    },
     handleDateClick(arg) {
       if (confirm('Izveidot jaunu rezervāciju ' + arg.dateStr + ' ?')) {
         let calendarApi = this.$refs.fullCalendar.getApi()

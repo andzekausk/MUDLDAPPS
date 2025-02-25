@@ -3,7 +3,7 @@ const { getReservations } = require("../services/calendarService");
 
 const router = express.Router();
 
-router.get("/api/reservations", async (req, res) => {
+router.get("/reservations", async (req, res) => {
     try {
       const reservations = await getReservations();
       res.json( reservations );
