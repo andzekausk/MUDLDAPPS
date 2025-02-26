@@ -1,109 +1,131 @@
 <template>
-  <div class='demo-app'>
-    <FullCalendar
-      class='demo-app-calendar'
-      ref="fullCalendar"
-      :options='calendarOptions'
-    >
-      <template v-slot:eventContent='arg'>
-        <b>{{ arg.timeText }}</b>
-        <i>{{ arg.event.title }}</i>
-      </template>
-    </FullCalendar>
+  <div class="calendar-container">
+    <!-- nav bar -->
+    <div class="calendar-header">
+      <button @click="changeDate('prev')">Iepriekšējais</button>
+      <h2>{{ currentDate }}</h2>
+      <button @click="changeDate('next')">Nākamais</button>
+      <button @click="resetDate">Šodiena</button>
+    </div>
+
+    <!-- Calendar grid view -->
+    <div class="calendars">
+      <div v-for="computer in computers" :key="computer.computer_id" class="calendar-wrapper">
+        <h3>{{ computer.computer_name }}</h3>
+        <FullCalendar ref="calendars" :options="getCalendarOptions(computer.computer_id)" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import FullCalendar from '@fullcalendar/vue3'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import listPlugin from "@fullcalendar/list";
+import FullCalendar from "@fullcalendar/vue3";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
 
 export default {
-
   components: {
-    FullCalendar // makes the <FullCalendar> tag available
+    FullCalendar,
   },
-
-  data: function() {
+  data() {
     return {
-      calendarOptions: {
-        plugins: [
-          dayGridPlugin,
-          timeGridPlugin,
-          interactionPlugin, // needed for dateClick
-          listPlugin
-        ],
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-        },
-        initialView: 'timeGridWeek',
-        firstDay: 1, 
-        locale: 'lv',
-        editable: true,
-        events: [],
-        dateClick: this.handleDateClick,
-        buttonText: {
-          today: 'Šodien',
-          month: 'Mēnesis',
-          week: 'Nedēļa',
-          day: 'Diena',
-          list: 'Saraksts'
-        },
-        allDayText: 'Visu dienu'
-      }
-    }
+      computers: [],
+      reservations: [],
+      currentDate: new Date().toISOString().split("T")[0],
+    };
   },
-
-  async mounted() {
-    await this.fetchReservations();
+  mounted() {
+    this.fetchComputers();
+    this.fetchReservations();
   },
-
   methods: {
+    async fetchComputers() {
+    try {
+        const response = await axios.get("http://localhost:3000/api/computers");
+        this.computers = response.data.computers; 
+    } catch (error) {
+        console.error("Failed to fetch computers:", error);
+    }
+    },
     async fetchReservations() {
       try {
         const response = await axios.get("http://localhost:3000/api/reservations");
-        this.calendarOptions.events = response.data.map(event => ({
-          title: event.name,
-          start: event.start,
-          end: event.end,
-          backgroundColor: event.color,
-          borderColor: event.color,
-          textColor: "#1E272E"
-        }));
+        console.log("Reservations:", response.data);
+        this.reservations = response.data;
       } catch (error) {
-        console.error("Kļūda ielādējot rezervācijas:", error);
+        console.error("Failed to fetch reservations:", error);
       }
     },
-    handleDateClick(arg) {
-      if (confirm('Izveidot jaunu rezervāciju ' + arg.dateStr + ' ?')) {
-        let calendarApi = this.$refs.fullCalendar.getApi()
-        calendarApi.addEvent({
-          title: 'Rezervācija',
-          start: arg.date,
-          allDay: arg.allDay
-        })
-      }
-    }
-  }
-}
-
+    getCalendarOptions(computerId) {
+      const events = (this.reservations || []).filter(
+        (reservation) => reservation.computer_id === computerId
+      );
+      return {
+        plugins: [timeGridPlugin, interactionPlugin],
+        initialView: "timeGridDay",
+        locale: "lv",
+        headerToolbar: false,
+        allDaySlot: false,
+        events,
+      };
+    },
+    changeDate(action) {
+      this.$refs.calendars.forEach((calendar) => {
+        const api = calendar.getApi();
+        if (action === "prev") api.prev();
+        else if (action === "next") api.next();
+        this.updateCurrentDate(api);
+      });
+    },
+    resetDate() {
+      this.$refs.calendars.forEach((calendar) => {
+        calendar.getApi().today();
+        this.updateCurrentDate(calendar.getApi());
+      });
+    },
+    updateCurrentDate(api) {
+      this.currentDate = api.getDate().toISOString().split("T")[0];
+    },
+  },
+};
 </script>
 
-<style lang='css'>
-
-.demo-app {
-  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
-  font-size: 14px;
+<style>
+.calendar-container {
+  text-align: center;
+  padding: 20px;
 }
 
-.demo-app-calendar {
-  margin: 0 auto;
-  max-width: 900px;
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
+.calendars {
+  display: flex;
+  overflow-x: auto;  /* scroll horizontally */
+  white-space: nowrap;
+  padding-bottom: 10px; /* scrollbar wont hide content */
+}
+
+.calendar-wrapper {
+  flex: 0 0 auto;  
+  width: 100px;  
+  min-width: 100px; 
+  height: 500px; 
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.fc {
+  height: 100%; /* Uses all height */
+}
+.fc-col-header {  
+  display: none; /* Hides title of day */
+}
 </style>

@@ -13,6 +13,7 @@ async function getReservations() {
       ];        
     return rows.map(row => ({
         name: `\n${row.name}`,
+        computer_id: row.computer_id,
         start: new Date(row.from_time),
         end: new Date(row.to_time),
         color: colors[row.computer_id % colors.length],
