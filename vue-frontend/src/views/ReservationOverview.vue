@@ -147,5 +147,21 @@ export default {
 .fc-col-header {  
   display: none; /* Hides title of day */
 }
+.fc-scroller::-webkit-scrollbar {
+  width: 0px; /* Hides scrollbar Chrome/Safari */
+}
 
+.fc-scroller {
+  scrollbar-width: none; /* Hides scrollbar Firefox */
+  /* padding-right: 0px !important; */
+}
+.fc-timegrid-body {
+  width: 100px;
+}
+.fc-col-header, .fc-scrollgrid-sync-table, .fc-daygrid-body.fc-daygrid-body-unbalanced.fc-daygrid-body-natural, .fc-daygrid-body.fc-daygrid-body-unbalanced, .fc-timegrid-body, .fc-timegrid-slots table, .fc-timegrid-cols table{
+  width: 100% !important;
+}
+/* .fc-timegrid-slots.table{
+  width: 100px;
+} */
 </style>
