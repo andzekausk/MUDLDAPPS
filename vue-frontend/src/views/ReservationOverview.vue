@@ -38,6 +38,11 @@ export default {
   mounted() {
     this.fetchComputers();
     this.fetchReservations();
+    this.$nextTick(() => {
+      setTimeout(() => {
+        this.syncScrolling();
+      }, 100); // delay needed for synced scroll to work
+    });
   },
   methods: {
     async fetchComputers() {
@@ -51,7 +56,6 @@ export default {
     async fetchReservations() {
       try {
         const response = await axios.get("http://localhost:3000/api/reservations");
-        console.log("Reservations:", response.data);
         this.reservations = response.data;
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
@@ -87,6 +91,21 @@ export default {
     updateCurrentDate(api) {
       this.currentDate = api.getDate().toISOString().split("T")[0];
     },
+    syncScrolling() {
+    this.$nextTick(() => {
+      const timeGrids = document.querySelectorAll(".fc-scroller");
+
+      timeGrids.forEach((grid) => {
+        grid.addEventListener("scroll", (e) => {
+          const scrollTop = e.target.scrollTop;
+          timeGrids.forEach((other) => {
+            if (other !== e.target) 
+              other.scrollTop = scrollTop;
+            });
+          });
+        });
+      });
+    },
   },
 };
 </script>
@@ -107,7 +126,7 @@ export default {
 
 .calendars {
   display: flex;
-  overflow-x: auto;  /* scroll horizontally */
+  /* overflow-x: auto;  scroll horizontally */
   white-space: nowrap;
   padding-bottom: 10px; /* scrollbar wont hide content */
 }
@@ -128,4 +147,5 @@ export default {
 .fc-col-header {  
   display: none; /* Hides title of day */
 }
+
 </style>
