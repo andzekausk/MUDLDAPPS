@@ -10,7 +10,12 @@
 
     <!-- Calendar grid view -->
     <div class="calendars">
-      <div v-for="computer in computers" :key="computer.computer_id" class="calendar-wrapper">
+      <div 
+        v-for="(computer, index) in computers" 
+        :key="computer.computer_id" 
+        class="calendar-wrapper"
+        :class="(index === 0 || index % 4 === 0) ? '' : 'not-show'"
+      >
         <h3>{{ computer.computer_name }}</h3>
         <FullCalendar ref="calendars" :options="getCalendarOptions(computer.computer_id)" />
       </div>
@@ -32,7 +37,7 @@ export default {
     return {
       computers: [],
       reservations: [],
-      currentDate: new Date().toISOString().split("T")[0],
+      currentDate: new Date().toLocaleDateString("lv-LV"),
     };
   },
   mounted() {
@@ -62,7 +67,7 @@ export default {
       }
     },
     getCalendarOptions(computerId) {
-      const events = (this.reservations || []).filter(
+      const events = this.reservations.filter(
         (reservation) => reservation.computer_id === computerId
       );
       return {
@@ -72,6 +77,7 @@ export default {
         headerToolbar: false,
         allDaySlot: false,
         events,
+        nowIndicator: true,
       };
     },
     changeDate(action) {
@@ -89,7 +95,8 @@ export default {
       });
     },
     updateCurrentDate(api) {
-      this.currentDate = api.getDate().toISOString().split("T")[0];
+      const date = api.getDate();
+      this.currentDate = date.toLocaleDateString("lv-LV");
     },
     syncScrolling() {
     this.$nextTick(() => {
@@ -137,31 +144,45 @@ export default {
   min-width: 100px; 
   height: 500px; 
   background: white;
-  padding: 10px;
+  /* padding: 10px; */
   border-radius: 6px;
 }
 
+/* Uses all height */
 .fc {
-  height: 100%; /* Uses all height */
-}
-.fc-col-header {  
-  display: none; /* Hides title of day */
-}
-.fc-scroller::-webkit-scrollbar {
-  width: 0px; /* Hides scrollbar Chrome/Safari */
+  height: 100%; 
 }
 
+/* Hides title of day */
+.fc-col-header {  
+  display: none; 
+}
+
+/* Hides scrollbar Chrome/Safari */
+.fc-scroller::-webkit-scrollbar {
+  width: 0px; 
+}
+
+/* Hides scrollbar Firefox */
 .fc-scroller {
-  scrollbar-width: none; /* Hides scrollbar Firefox */
-  /* padding-right: 0px !important; */
+  scrollbar-width: none; 
 }
-.fc-timegrid-body {
-  width: 100px;
-}
+
 .fc-col-header, .fc-scrollgrid-sync-table, .fc-daygrid-body.fc-daygrid-body-unbalanced.fc-daygrid-body-natural, .fc-daygrid-body.fc-daygrid-body-unbalanced, .fc-timegrid-body, .fc-timegrid-slots table, .fc-timegrid-cols table{
   width: 100% !important;
 }
-/* .fc-timegrid-slots.table{
-  width: 100px;
-} */
+
+.not-show .fc-timegrid-slot-label {
+  display: none;
+}
+
+/* Removes background color from current day */
+.fc-day-today {
+  background: transparent !important; 
+}
+
+.fc-scrollgrid{
+  width: 87%;
+}
 </style>
+
