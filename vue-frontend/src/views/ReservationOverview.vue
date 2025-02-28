@@ -14,7 +14,7 @@
         v-for="(computer, index) in computers" 
         :key="computer.computer_id" 
         class="calendar-wrapper"
-        :class="(index === 0 || index % 4 === 0) ? 'wide' : 'not-show narrow'"
+        :class="( index % 4 === 0) ? 'wide' : 'not-show narrow'"
       >
         <h3 class="align-title">{{ computer.computer_name }}</h3>
         <FullCalendar ref="calendars" :options="getCalendarOptions(computer.computer_id)" />
