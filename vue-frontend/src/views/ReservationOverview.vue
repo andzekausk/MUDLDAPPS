@@ -14,9 +14,9 @@
         v-for="(computer, index) in computers" 
         :key="computer.computer_id" 
         class="calendar-wrapper"
-        :class="(index === 0 || index % 4 === 0) ? '' : 'not-show'"
+        :class="(index === 0 || index % 4 === 0) ? 'wide' : 'not-show narrow'"
       >
-        <h3>{{ computer.computer_name }}</h3>
+        <h3 class="align-title">{{ computer.computer_name }}</h3>
         <FullCalendar ref="calendars" :options="getCalendarOptions(computer.computer_id)" />
       </div>
     </div>
@@ -141,11 +141,23 @@ export default {
 .calendar-wrapper {
   flex: 0 0 auto;  
   width: 100px;  
-  min-width: 100px; 
+  /* min-width: 100px;  */
   height: 500px; 
   background: white;
   /* padding: 10px; */
   border-radius: 6px;
+}
+
+.narrow {  
+  width: 90px;  
+}
+.wide {  
+  width: 110px;  
+}
+
+.align-title {
+  text-align: right;
+  padding-right: 3px;
 }
 
 /* Uses all height */
@@ -181,8 +193,5 @@ export default {
   background: transparent !important; 
 }
 
-.fc-scrollgrid{
-  width: 87%;
-}
 </style>
 
