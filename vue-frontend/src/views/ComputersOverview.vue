@@ -3,6 +3,13 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 
 const computers = ref([]);
+const showModal = ref(false);
+const newComputer = ref({
+  name: "",
+  description: "",
+  row: "",
+  column: "",
+});
 
 const fetchComputers = async () => {
     try {
@@ -13,12 +20,27 @@ const fetchComputers = async () => {
     }
 };
 
+const addComputer = async () => {
+  try {
+    await axios.post("http://localhost:3000/api/computers", newComputer.value);
+    showModal.value = false;
+    fetchComputers();
+    newComputer.value = { name: "", description: "", row: "", column: "" }; 
+  } catch (error) {
+    console.error("Failed to add computer:", error);
+  }
+};
+
 onMounted(fetchComputers);
 </script>
 
 <template>
+  
     <div class="computers-container">
       <h1>Datoru pārskats</h1>
+
+      <button @click="showModal = true" class="add-button">Pievienot datoru</button>
+
       <div class="computer-cards">
         <div v-for="computer in computers" :key="computer.computer_id" class="computer-card">
           <h2>{{ computer.computer_name }}</h2>
@@ -31,7 +53,29 @@ onMounted(fetchComputers);
           </div>
         </div>
       </div>
+      <div v-if="showModal" class="modal-overlay">
+        <div class="modal">
+          <h2>Pievienot jaunu datoru</h2>
+          <label>Nosaukums:</label>
+          <input v-model="newComputer.name" type="text" required />
+          
+          <label>Apraksts:</label>
+          <input v-model="newComputer.description" type="text" />
+          
+          <label>Rinda:</label>
+          <input v-model="newComputer.row" type="number" required />
+          
+          <label>Kolonna:</label>
+          <input v-model="newComputer.column" type="number" required />
+
+          <button @click="addComputer">Pievienot</button>
+          <button @click="showModal = false" class="close-button">Aizvērt</button>
+        </div>
+      </div>
     </div>
+
+
+
   </template>
 
 <style scoped>
@@ -39,6 +83,15 @@ onMounted(fetchComputers);
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.add-button {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
 .computer-cards {
@@ -54,4 +107,38 @@ onMounted(fetchComputers);
   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
   background: white;
 }
+
+/* Modal window */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+
+.close-button {
+  background: #f44336;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+}
+
 </style>

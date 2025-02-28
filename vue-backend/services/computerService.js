@@ -55,7 +55,15 @@ async function getComputers() {
     `, [computerOsId]);
     return rows.map(row => row.name);
   }
-
+  
+  async function addComputer({name, description, row, column}) {
+    const [result] = await pool.query(`
+      INSERT INTO computers (name, description, comp_row, comp_col)
+      VALUES (?, ?, ?, ?)
+    `, [name, description, row, column]);
+    return { computer_id: result.insertId,  name, description, row, column};
+  }
   module.exports = {
-    getComputers
+    getComputers,
+    addComputer
   };
