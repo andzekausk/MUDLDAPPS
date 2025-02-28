@@ -31,6 +31,23 @@ const addComputer = async () => {
   }
 };
 
+const deleteComputer = async (computerId) => {
+    try {
+        await axios.delete(`http://localhost:3000/api/computers/${computerId}`);
+        computers.value = computers.value.filter(c => c.computer_id !== computerId);
+        alert("Dators veiksmīgi izdzēsts!");
+    } catch (error) {
+        console.error("Error deleting computer:", error);
+        alert("Kļūda dzēšot datoru!");
+    }
+};
+
+const confirmDelete = (computerId) => {
+    if (confirm("Vai tiešām vēlies dzēst šo datoru?")) {
+        deleteComputer(computerId);
+    }
+};
+
 onMounted(fetchComputers);
 </script>
 
@@ -51,6 +68,7 @@ onMounted(fetchComputers);
               {{ os.software.length > 0 ? os.software.join(', ') : "Nav instalēta" }}
             </p>
           </div>
+          <button @click="confirmDelete(computer.computer_id)" class="delete-btn">Dzēst</button>
         </div>
       </div>
       <div v-if="showModal" class="modal-overlay">
@@ -139,6 +157,21 @@ input {
   padding: 10px;
   border: none;
   cursor: pointer;
+}
+
+/* Delete button */
+.delete-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.delete-btn:hover {
+  background: darkred;
 }
 
 </style>

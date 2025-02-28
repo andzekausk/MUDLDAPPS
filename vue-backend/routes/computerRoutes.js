@@ -1,5 +1,5 @@
 const express = require("express");
-const { getComputers, addComputer } = require("../services/computerService");
+const { getComputers, addComputer, deleteComputer } = require("../services/computerService");
 
 const router = express.Router();
 
@@ -25,6 +25,17 @@ router.post("/computers", async (req, res) => {
   } catch (error) {
     console.error("Error adding computer:", error);
     res.status(500).json({ message: "Error adding computer" });
+  }
+});
+
+router.delete("/computers/:id", async (req, res) => {
+  try {
+      const { id } = req.params;
+      await deleteComputer(id);
+      res.json({ message: "Dators veiksmīgi izdzēsts" });
+  } catch (error) {
+      console.error("Error deleting computer:", error);
+      res.status(500).json({ message: "Kļūda dzēšot datoru" });
   }
 });
 
