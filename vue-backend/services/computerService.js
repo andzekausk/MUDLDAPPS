@@ -68,7 +68,9 @@ async function getComputers() {
 
   async function deleteComputer(computerId) {
     try {
-        await pool.query(`DELETE FROM computers WHERE computer_id = ?`, [computerId]);
+        await pool.query(`
+          DELETE FROM computers WHERE computer_id = ?
+        `, [computerId]);
     } catch (error) {
         console.error("Error deleting computer:", error);
         throw error;

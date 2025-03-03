@@ -6,8 +6,8 @@ require("dotenv").config();
 
 const computerRoutes = require("./routes/computerRoutes");
 const authRoutes = require("./routes/authRoutes");
-const calendarRoutes = require("./routes/calendarRoutes");
-
+const reservationRoutes = require("./routes/reservationRoutes");
+const requestRoutes = require("./routes/requestRoutes");
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -22,7 +22,8 @@ app.get("/", (req, res) => {
 
 app.use("/api", computerRoutes);
 app.use("/", authRoutes);
-app.use("/api", calendarRoutes);
+app.use("/api", reservationRoutes);
+app.use("/api", requestRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
