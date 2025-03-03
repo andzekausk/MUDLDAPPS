@@ -2,7 +2,7 @@ const pool = require("../db");
 
 async function getComputers() {
     const [computers] = await pool.query(`
-      SELECT computer_id, name AS computer_name
+      SELECT computer_id, name AS computer_name, description, comp_row, comp_col
       FROM computers
     `);
   
@@ -64,6 +64,8 @@ async function getComputers() {
     return { computer_id: result.insertId,  name, description, row, column};
   }
 
+  
+
   async function deleteComputer(computerId) {
     try {
         await pool.query(`DELETE FROM computers WHERE computer_id = ?`, [computerId]);
@@ -73,8 +75,26 @@ async function getComputers() {
     }
   }
 
+  async function updateComputer(computerId, {name, description, row, column}) {
+    try {
+        console.log("Updating computer:", { computerId, name, description, row, column });
+        await pool.query(`
+          UPDATE computers 
+          SET name = ?, description = ?, 
+          comp_row = ?, comp_col = ? 
+          WHERE computer_id = ?
+          `, [name, description, row, column, computerId]);
+    } catch (error) {
+        console.error("Error updating computer:", error);
+        throw error;
+    }
+  }
+
+
+
   module.exports = {
     getComputers,
     addComputer,
-    deleteComputer
+    deleteComputer,
+    updateComputer
   };

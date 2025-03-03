@@ -4,7 +4,17 @@ import axios from "axios";
 
 const computers = ref([]);
 const showModal = ref(false);
+const showEditModal = ref(false);
+
 const newComputer = ref({
+  name: "",
+  description: "",
+  row: "",
+  column: "",
+});
+
+const editedComputer = ref({
+  computer_id: null,
   name: "",
   description: "",
   row: "",
@@ -48,6 +58,33 @@ const confirmDelete = (computerId) => {
     }
 };
 
+
+const editComputer = (computer) => {
+  // editedComputer.value = { ...computer };
+  // showEditModal.value = true;
+  editedComputer.value = {
+    computer_id: computer.computer_id,
+    name: computer.computer_name,
+    description: computer.description || "",
+    row: computer.comp_row,
+    column: computer.comp_col
+  };
+  showEditModal.value = true;
+};
+
+const updateComputer = async () => {
+  try {
+    await axios.put(
+      `http://localhost:3000/api/computers/${editedComputer.value.computer_id}`,
+      editedComputer.value
+    );
+    showEditModal.value = false;
+    fetchComputers();
+  } catch (error) {
+    console.error("Failed to update computer:", error);
+  }
+};
+
 onMounted(fetchComputers);
 </script>
 
@@ -68,9 +105,12 @@ onMounted(fetchComputers);
               {{ os.software.length > 0 ? os.software.join(', ') : "Nav instalēta" }}
             </p>
           </div>
+          <button @click="editComputer(computer)" class="edit-btn">Rediģēt</button>
           <button @click="confirmDelete(computer.computer_id)" class="delete-btn">Dzēst</button>
         </div>
       </div>
+
+      <!-- add modal -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal">
           <h2>Pievienot jaunu datoru</h2>
@@ -88,6 +128,27 @@ onMounted(fetchComputers);
 
           <button @click="addComputer">Pievienot</button>
           <button @click="showModal = false" class="close-button">Aizvērt</button>
+        </div>
+      </div>
+
+      <!-- edit modal -->
+      <div v-if="showEditModal" class="modal-overlay">
+        <div class="modal">
+          <h2>Rediģēt datoru</h2>
+          <label>Nosaukums:</label>
+          <input v-model="editedComputer.name" type="text" required />
+
+          <label>Apraksts:</label>
+          <input v-model="editedComputer.description" type="text" />
+
+          <label>Rinda:</label>
+          <input v-model="editedComputer.row" type="number" required />
+
+          <label>Kolonna:</label>
+          <input v-model="editedComputer.column" type="number" required />
+
+          <button @click="updateComputer">Saglabāt</button>
+          <button @click="showEditModal = false" class="close-button">Aizvērt</button>
         </div>
       </div>
     </div>
@@ -151,27 +212,29 @@ input {
   padding: 8px;
 }
 
-.close-button {
-  background: #f44336;
-  color: white;
-  padding: 10px;
+.close-button, .edit-btn, .delete-btn {
+  padding: 8px;
+  margin: 5px;
   border: none;
   cursor: pointer;
 }
 
-/* Delete button */
+.edit-btn {
+  background: #008cba;
+  color: white;
+}
+
 .delete-btn {
   background: red;
   color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
 }
 
 .delete-btn:hover {
   background: darkred;
+}
+
+.edit-btn:hover {
+  background: #005f7a;
 }
 
 </style>
