@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { loginWithGoogle, logout as firebaseLogout } from "../firebase";
+import { loginWithGoogle, logout } from "../firebase";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -7,7 +7,6 @@ export const useAuthStore = defineStore("auth", {
     isAllowed: false,
     roles: [],
     currentRole: "",
-    token: localStorage.getItem("token") || null,
   }),
   actions: {
     async loginWithGoogle() {
@@ -30,11 +29,10 @@ export const useAuthStore = defineStore("auth", {
 
           if (!response.ok) throw new Error("Failed to verify login");
 
-          // this.user = { email: data.email };
-          // this.roles = data.roles;
-          // this.isAllowed = data.isAllowed;
-          // this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
-          this.setUserSession(data);
+          this.user = { email: data.email };
+          this.roles = data.roles;
+          this.isAllowed = data.isAllowed;
+          this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
 
         } catch (error) {
           console.error("Login error:", error);
@@ -51,10 +49,10 @@ export const useAuthStore = defineStore("auth", {
         if (!response.ok) throw new Error("Invalid username or password");
 
         const data = await response.json();
-        // this.user = { email: data.email };
-        // this.roles = data.roles;
-        // this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
-        this.setUserSession(data);
+        this.user = { email: data.email };
+        this.roles = data.roles;
+        this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
+
       } catch (error) {
         console.error("Login error:", error);
       }
@@ -65,43 +63,11 @@ export const useAuthStore = defineStore("auth", {
       this.isAllowed = false;
       this.roles = [];
       this.currentRole = "";
-      this.token = null;
-      localStorage.removeItem("token");
-
-      await firebaseLogout();
     },
     
     async switchRole(newRole) {
       if (this.roles.includes(newRole)) {
         this.currentRole = newRole;
-      }
-    },
-    setUserSession(data) {
-      this.user = { email: data.email };
-      this.roles = data.roles;
-      this.isAllowed = data.isAllowed;
-      this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
-      this.token = data.token;
-
-      localStorage.setItem("token", data.token);
-    },
-    async checkAuth() {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      try {
-        const response = await fetch("http://localhost:3000/auth/verify", {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error("Invalid token");
-
-        this.setUserSession(data);
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        this.logout();
       }
     },
   }
