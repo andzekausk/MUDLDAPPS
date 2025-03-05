@@ -8,8 +8,6 @@ const authStore = useAuthStore();
 const computers = ref([]);
 const selectedComputers = ref([]);
 const requestInfo = ref("");
-// const fromTime = ref("");
-// const toTime = ref("");
 const timeSlots = ref([{fromTime: "", toTime: ""}]);
 
 const fetchComputers = async () => {
@@ -66,8 +64,6 @@ const submitRequest = async () => {
         alert("Pieprasījums veiksmīgi iesniegts!");
         selectedComputers.value = [];
         requestInfo.value = "";
-        // fromTime.value = "";
-        // toTime.value = "";
         timeSlots.value = [{ fromTime: "", toTime: "" }];
     } catch (error) {
         console.error("Failed to submit request:", error);
@@ -89,12 +85,6 @@ onMounted(fetchComputers);
                 {{ computer.computer_name }}
             </label>
         </div>
-        
-        <!-- <label>Sākuma datums/laiks:</label>
-        <input type="datetime-local" v-model="fromTime" required />
-
-        <label>Beigu datums/laiks:</label>
-        <input type="datetime-local" v-model="toTime" required /> -->
 
         <label>Izvēlieties laikus:</label>
         <div v-for="(slot, index) in timeSlots" :key="index" class="time-slot">
@@ -128,8 +118,9 @@ label {
 }
 
 .computer-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
     margin-bottom: 10px;
 }
 
