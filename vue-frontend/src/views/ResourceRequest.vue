@@ -1,7 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useAuthStore } from "../store/auth";
+import { jwtDecode } from "jwt-decode";
 
+const authStore = useAuthStore();
 const computers = ref([]);
 const selectedComputers = ref([]);
 const requestInfo = ref("");
@@ -19,21 +22,26 @@ const fetchComputers = async () => {
 
 const submitRequest = async () => {
     if (selectedComputers.value.length === 0 || !fromTime.value || !toTime.value) {
-        alert("Lūdzu aizpildiet visus laukus un izvēlieties vismaz vienu datoru.");
+        alert("Lūdzu izvēlieties vismaz vienu datoru un laikus.");
         return;
     }
-
+    // Get user_id dynamically from authStore
+    const userId = jwtDecode(authStore.token)?.user_id;
+    if (!userId) {
+        alert("Nevarēja iegūt lietotāja ID. Lūdzu, ielogojieties vēlreiz.");
+        return;
+    }
     try {
-        // Pievieno pieprasījumu DB
+        // create request
         const requestResponse = await axios.post("http://localhost:3000/api/requests", {
-            user_id: 1, // TODO: Dinamiski ielādēt lietotāja ID
+            user_id: userId,
             information: requestInfo.value,
             status: "pending"
         });
         
         const requestId = requestResponse.data.request_id;
         
-        // Izveido rezervācijas katram izvēlētajam datoram
+        // create reservation for each computer
         for (const computerId of selectedComputers.value) {
             await axios.post("http://localhost:3000/api/reservations", {
                 computer_id: computerId,
