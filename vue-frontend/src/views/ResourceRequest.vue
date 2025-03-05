@@ -8,8 +8,9 @@ const authStore = useAuthStore();
 const computers = ref([]);
 const selectedComputers = ref([]);
 const requestInfo = ref("");
-const fromTime = ref("");
-const toTime = ref("");
+// const fromTime = ref("");
+// const toTime = ref("");
+const timeSlots = ref([{fromTime: "", toTime: ""}]);
 
 const fetchComputers = async () => {
     try {
@@ -20,8 +21,17 @@ const fetchComputers = async () => {
     }
 };
 
+const addTimeSlot = () => {
+    timeSlots.value.push({ fromTime: "", toTime: "" });
+};
+
+const removeTimeSlot = (index) => {
+    if (timeSlots.value.length > 1) {
+        timeSlots.value.splice(index, 1);
+    }
+};
 const submitRequest = async () => {
-    if (selectedComputers.value.length === 0 || !fromTime.value || !toTime.value) {
+    if (selectedComputers.value.length === 0 || timeSlots.value.some(slot => !slot.fromTime || !slot.toTime)) {
         alert("Lūdzu izvēlieties vismaz vienu datoru un laikus.");
         return;
     }
@@ -43,19 +53,22 @@ const submitRequest = async () => {
         
         // create reservation for each computer
         for (const computerId of selectedComputers.value) {
-            await axios.post("http://localhost:3000/api/reservations", {
-                computer_id: computerId,
-                request_id: requestId,
-                from_time: fromTime.value,
-                to_time: toTime.value
-            });
+            for (const { fromTime, toTime } of timeSlots.value) {
+                await axios.post("http://localhost:3000/api/reservations", {
+                    computer_id: computerId,
+                    request_id: requestId,
+                    from_time: fromTime,
+                    to_time: toTime
+                });
+            }
         }
 
         alert("Pieprasījums veiksmīgi iesniegts!");
         selectedComputers.value = [];
         requestInfo.value = "";
-        fromTime.value = "";
-        toTime.value = "";
+        // fromTime.value = "";
+        // toTime.value = "";
+        timeSlots.value = [{ fromTime: "", toTime: "" }];
     } catch (error) {
         console.error("Failed to submit request:", error);
         alert("Neizdevās iesniegt pieprasījumu.");
@@ -77,11 +90,19 @@ onMounted(fetchComputers);
             </label>
         </div>
         
-        <label>Sākuma datums/laiks:</label>
+        <!-- <label>Sākuma datums/laiks:</label>
         <input type="datetime-local" v-model="fromTime" required />
 
         <label>Beigu datums/laiks:</label>
-        <input type="datetime-local" v-model="toTime" required />
+        <input type="datetime-local" v-model="toTime" required /> -->
+
+        <label>Izvēlieties laikus:</label>
+        <div v-for="(slot, index) in timeSlots" :key="index" class="time-slot">
+            <input type="datetime-local" v-model="slot.fromTime" required />
+            <input type="datetime-local" v-model="slot.toTime" required />
+            <button @click="removeTimeSlot(index)" v-if="timeSlots.length > 1">Noņemt</button>
+        </div>
+        <button @click="addTimeSlot">Pievienot vēl laikus</button>
 
         <label>Komentārs:</label>
         <textarea v-model="requestInfo" placeholder="Papildu informācija"></textarea>
@@ -125,4 +146,16 @@ button {
     border: none;
     cursor: pointer;
 }
+
+.time-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background: #45a049;
+}
+
 </style>
