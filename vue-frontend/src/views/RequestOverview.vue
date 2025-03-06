@@ -1,10 +1,10 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
 const requests = ref([]);
-const statuses = ["pending", "approved", "denied"];
-
+const statuses = ["all", "pending", "approved", "denied"];
+const selectedStatus = ref("pending");
 const fetchRequests = async () => {
     try {
         const response = await axios.get("http://localhost:3000/api/requests");
@@ -31,12 +31,29 @@ const updateStatus = async (requestId, newStatus) => {
     }
 };
 
+const filteredRequests = computed(() => {
+    if (selectedStatus.value === "all") {
+        return requests.value;
+    }
+    return requests.value.filter(request => request.status === selectedStatus.value);
+});
+
 onMounted(fetchRequests);
 </script>
 
 <template>
     <div class="request-container">
         <h1>Rezervāciju veidošana</h1>
+
+        <!-- Status Filter Dropdown -->
+        <div class="filter-container">
+            <label for="statusFilter">Filtrēt pēc statusa:</label>
+            <select id="statusFilter" v-model="selectedStatus">
+                <option v-for="status in statuses" :key="status" :value="status">
+                    {{ status }}
+                </option>
+            </select>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -48,13 +65,13 @@ onMounted(fetchRequests);
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="request in requests" :key="request.request_id">
+                <tr v-for="request in filteredRequests" :key="request.request_id">
                     <td>{{ request.email }}</td>
                     <td>{{ request.information }}</td>
                     <td>{{ new Date(request.created_at).toLocaleString() }}</td>
                     <td>
                         <select v-model="request.status">
-                            <option v-for="status in statuses" :key="status" :value="status">
+                            <option v-for="status in statuses.slice(1)" :key="status" :value="status">
                                 {{ status }}
                             </option>
                         </select>
@@ -74,6 +91,11 @@ onMounted(fetchRequests);
     margin: 0 auto;
     padding: 20px;
 }
+
+.filter-container {
+    margin-bottom: 10px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
