@@ -45,7 +45,6 @@ onMounted(fetchRequests);
     <div class="request-container">
         <h1>Rezervāciju veidošana</h1>
 
-        <!-- Status Filter Dropdown -->
         <div class="filter-container">
             <label for="statusFilter">Filtrēt pēc statusa:</label>
             <select id="statusFilter" v-model="selectedStatus">

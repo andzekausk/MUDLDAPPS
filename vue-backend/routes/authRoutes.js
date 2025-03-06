@@ -1,5 +1,8 @@
 const express = require("express");
-const { loginWithGoogle, loginWithUsernamePassword, verifyToken } = require("../services/authService");
+const { 
+    loginWithGoogle, 
+    loginWithUsernamePassword, 
+    verifyToken } = require("../services/authService");
 
 const router = express.Router();
 

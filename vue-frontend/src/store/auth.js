@@ -30,10 +30,6 @@ export const useAuthStore = defineStore("auth", {
 
           if (!response.ok) throw new Error("Failed to verify login");
 
-          // this.user = { email: data.email };
-          // this.roles = data.roles;
-          // this.isAllowed = data.isAllowed;
-          // this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
           this.setUserSession(data);
 
         } catch (error) {
@@ -51,9 +47,6 @@ export const useAuthStore = defineStore("auth", {
         if (!response.ok) throw new Error("Invalid username or password");
 
         const data = await response.json();
-        // this.user = { email: data.email };
-        // this.roles = data.roles;
-        // this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
         this.setUserSession(data);
       } catch (error) {
         console.error("Login error:", error);

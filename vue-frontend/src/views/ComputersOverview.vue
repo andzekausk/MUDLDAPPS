@@ -60,8 +60,6 @@ const confirmDelete = (computerId) => {
 
 
 const editComputer = (computer) => {
-  // editedComputer.value = { ...computer };
-  // showEditModal.value = true;
   editedComputer.value = {
     computer_id: computer.computer_id,
     name: computer.computer_name,

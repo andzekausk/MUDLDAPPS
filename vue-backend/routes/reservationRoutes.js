@@ -31,7 +31,6 @@ router.get("/reservations/:id", async (req, res) => {
     }
 });
 
-// Izveidot jaunu rezervāciju
 router.post("/reservations", async (req, res) => {
     try {
         const { computer_id, request_id, from_time, to_time } = req.body;
@@ -43,7 +42,6 @@ router.post("/reservations", async (req, res) => {
     }
 });
 
-// Atjaunināt rezervāciju
 router.put("/reservations/:id", async (req, res) => {
     try {
         const { from_time, to_time } = req.body;
@@ -55,7 +53,6 @@ router.put("/reservations/:id", async (req, res) => {
     }
 });
 
-// Dzēst rezervāciju
 router.delete("/reservations/:id", async (req, res) => {
     try {
         await deleteReservation(req.params.id);

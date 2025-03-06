@@ -1,5 +1,9 @@
 const express = require("express");
-const { getComputers, addComputer, deleteComputer, updateComputer } = require("../services/computerService");
+const { 
+  getComputers, 
+  addComputer, 
+  deleteComputer, 
+  updateComputer } = require("../services/computerService");
 
 const router = express.Router();
 
