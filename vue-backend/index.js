@@ -8,6 +8,7 @@ const computerRoutes = require("./routes/computerRoutes");
 const authRoutes = require("./routes/authRoutes");
 const reservationRoutes = require("./routes/reservationRoutes");
 const requestRoutes = require("./routes/requestRoutes");
+const userRoutes = require("./routes/userRoutes");
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -24,6 +25,7 @@ app.use("/api", computerRoutes);
 app.use("/", authRoutes);
 app.use("/api", reservationRoutes);
 app.use("/api", requestRoutes);
+app.use("/api", userRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {

@@ -10,21 +10,25 @@ async function createReservation({ computer_id, request_id, from_time, to_time }
 
 async function getReservations() {
     const [rows] = await pool.query(`
-        SELECT r.reservation_id, r.computer_id, r.from_time, r.to_time, c.name 
+        SELECT r.reservation_id, r.computer_id, r.request_id, r.from_time, r.to_time, c.name, req.status
         FROM reservations r
         JOIN computers c ON r.computer_id = c.computer_id
+        JOIN requests req ON req.request_id = r.request_id
     `);
     const colors = [ // colors for specific id
         "#FFDDC1", "#FFABAB","#FFC3A0","#D5AAFF",
         "#85E3FF", "#B9FBC0", "#AFCBFF",  "#FFE7A0",
         "#FFCBCB","#B5EAD7","#E2F0CB", "#F3B0C3"
       ];        
+    // console.log(getRequestStatusByRequestId(rows[0].request_id));
     return rows.map(row => ({
         name: `\n${row.name}`,
         computer_id: row.computer_id,
+        request_id: row.request_id,
         start: new Date(row.from_time),
         end: new Date(row.to_time),
-        color: colors[row.computer_id % colors.length],
+        status: row.status,
+        color: row.status==="approved"? colors[row.computer_id % colors.length] : "LightGrey", // TODO: need to change for a more sensical way to do this
     }));
 }
 

@@ -10,7 +10,13 @@ async function createRequest({ user_id, information, status }) {
 }
 
 async function getRequests() {
-    const [rows] = await pool.query(`SELECT * FROM requests`);
+    // const [rows] = await pool.query(`SELECT * FROM requests`);
+    const [rows] = await pool.query(`
+        SELECT r.request_id, r.user_id, u.email, r.information, r.status, r.created_at
+        FROM requests r
+        JOIN users u ON r.user_id = u.user_id
+        ORDER BY r.created_at DESC
+    `);
     return rows;
 }
 

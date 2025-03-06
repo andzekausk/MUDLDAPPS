@@ -68,7 +68,7 @@ export default {
     },
     getCalendarOptions(computerId) {
       const events = this.reservations.filter(
-        (reservation) => reservation.computer_id === computerId
+        (reservation) => reservation.computer_id === computerId && reservation.status !== "denied"
       );
       return {
         plugins: [timeGridPlugin, interactionPlugin],
