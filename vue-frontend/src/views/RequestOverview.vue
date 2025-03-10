@@ -7,7 +7,7 @@ const statuses = ["all", "pending", "approved", "denied"];
 const selectedStatus = ref("pending");
 const fetchRequests = async () => {
     try {
-        const response = await axios.get("http://localhost:3000/api/requests");
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/requests`);
         requests.value = response.data;
     } catch (error) {
         console.error("Failed to fetch requests:", error);
@@ -18,7 +18,7 @@ const updateStatus = async (requestId, newStatus) => {
     try {
         const request = requests.value.find(r => r.request_id === requestId);
         if (!request) return;
-        await axios.put(`http://localhost:3000/api/requests/${requestId}`, {
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/requests/${requestId}`, {
             information: request.information, 
             status: newStatus 
         });

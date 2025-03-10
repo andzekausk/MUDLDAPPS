@@ -12,7 +12,7 @@ const timeSlots = ref([{fromTime: "", toTime: ""}]);
 
 const fetchComputers = async () => {
     try {
-        const response = await axios.get("http://localhost:3000/api/computers");
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/computers`);
         computers.value = response.data.computers;
     } catch (error) {
         console.error("Failed to fetch computers:", error);
@@ -41,7 +41,7 @@ const submitRequest = async () => {
     }
     try {
         // create request
-        const requestResponse = await axios.post("http://localhost:3000/api/requests", {
+        const requestResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/requests`, {
             user_id: userId,
             information: requestInfo.value,
             status: "pending"
@@ -52,7 +52,7 @@ const submitRequest = async () => {
         // create reservation for each computer
         for (const computerId of selectedComputers.value) {
             for (const { fromTime, toTime } of timeSlots.value) {
-                await axios.post("http://localhost:3000/api/reservations", {
+                await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
                     computer_id: computerId,
                     request_id: requestId,
                     from_time: fromTime,

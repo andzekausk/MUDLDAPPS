@@ -52,7 +52,7 @@ export default {
   methods: {
     async fetchComputers() {
     try {
-        const response = await axios.get("http://localhost:3000/api/computers");
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/computers`);
         this.computers = response.data.computers; 
     } catch (error) {
         console.error("Failed to fetch computers:", error);
@@ -60,7 +60,7 @@ export default {
     },
     async fetchReservations() {
       try {
-        const response = await axios.get("http://localhost:3000/api/reservations");
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`);
         this.reservations = response.data;
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
