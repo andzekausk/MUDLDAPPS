@@ -23,7 +23,8 @@ const editedComputer = ref({
 
 const fetchComputers = async () => {
     try {
-        const response = await axios.get("http://localhost:3000/api/computers");
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/computers`);
+        // const response = await axios.get("http://localhost:3000/api/computers");
         computers.value = response.data.computers; 
     } catch (error) {
         console.error("Failed to fetch computers:", error);
@@ -32,7 +33,8 @@ const fetchComputers = async () => {
 
 const addComputer = async () => {
   try {
-    await axios.post("http://localhost:3000/api/computers", newComputer.value);
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/computers`, newComputer.value);
+    // await axios.post("http://localhost:3000/api/computers", newComputer.value);
     showModal.value = false;
     fetchComputers();
     newComputer.value = { name: "", description: "", row: "", column: "" }; 
@@ -43,7 +45,8 @@ const addComputer = async () => {
 
 const deleteComputer = async (computerId) => {
     try {
-        await axios.delete(`http://localhost:3000/api/computers/${computerId}`);
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/computers/${computerId}`);
+        // await axios.delete(`http://localhost:3000/api/computers/${computerId}`);
         computers.value = computers.value.filter(c => c.computer_id !== computerId);
         alert("Dators veiksmīgi izdzēsts!");
     } catch (error) {
@@ -73,7 +76,8 @@ const editComputer = (computer) => {
 const updateComputer = async () => {
   try {
     await axios.put(
-      `http://localhost:3000/api/computers/${editedComputer.value.computer_id}`,
+      `${import.meta.env.VITE_API_BASE_URL}/api/computers/${editedComputer.value.computer_id}`,
+      // `http://localhost:3000/api/computers/${editedComputer.value.computer_id}`,
       editedComputer.value
     );
     showEditModal.value = false;

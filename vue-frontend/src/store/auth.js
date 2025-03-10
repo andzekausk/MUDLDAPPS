@@ -15,7 +15,8 @@ export const useAuthStore = defineStore("auth", {
         if (!loggedUser) return;
         
         try {
-          const response = await fetch("http://localhost:3000/login", {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+          // const response = await fetch("http://localhost:3000/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ idToken: loggedUser.idToken }),
@@ -38,7 +39,8 @@ export const useAuthStore = defineStore("auth", {
     },
     async loginWithUsername(username, password) {
       try {
-        const response = await fetch("http://localhost:3000/login", {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
+        // const response = await fetch("http://localhost:3000/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
@@ -83,7 +85,8 @@ export const useAuthStore = defineStore("auth", {
       if (!token) return;
 
       try {
-        const response = await fetch("http://localhost:3000/auth/verify", {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/verify`, {
+        // const response = await fetch("http://localhost:3000/auth/verify", {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });

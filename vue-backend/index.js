@@ -11,6 +11,7 @@ const requestRoutes = require("./routes/requestRoutes");
 const userRoutes = require("./routes/userRoutes");
 const app = express();
 app.use(cors());
+// app.use(cors({origin: "*"}));
 app.use(bodyParser.json());
 
 admin.initializeApp({
@@ -29,5 +30,6 @@ app.use("/api", userRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
+// app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
