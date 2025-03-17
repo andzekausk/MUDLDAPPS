@@ -6,7 +6,7 @@
       <router-link v-if="authStore.currentRole=='lietotājs'" to="/resource_request">Pieteikšanās resursu lietošanai </router-link> |
       <router-link v-if="authStore.currentRole=='pārvaldnieks'" to="/request_overview">Rezervāciju veidošana </router-link> |
       <router-link v-if="authStore.currentRole!='administrators'" to="/">Pieteikt problēmu </router-link> |
-      <router-link v-if="authStore.currentRole=='administrators'" to="/admin">Lietotāju pārvaldība </router-link> | 
+      <router-link v-if="authStore.currentRole=='administrators'" to="/user_overview">Lietotāju pārvaldība </router-link> | 
       <button v-if="authStore.user" @click="logoutAndRedirect">Logout</button>
       <select v-if="authStore.roles.length > 1" v-model="authStore.currentRole">
       <option v-for="role in authStore.roles" :key="role" :value="role">{{ role }}</option>

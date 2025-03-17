@@ -6,6 +6,7 @@ import ComputersOverview from "./views/ComputersOverview.vue";
 import ReservationOverview from "./views/ReservationOverview.vue";
 import ResourceRequest from "./views/ResourceRequest.vue";
 import RequestOverview from "./views/RequestOverview.vue";
+import UserOverview from "./views/UserOverview.vue";
 import { useAuthStore } from "./store/auth";
 
 const routes = [
@@ -15,7 +16,8 @@ const routes = [
     { path: "/computers_overview", component: ComputersOverview, meta: { requiresAuth: true }},
     { path: "/reservation_overview", component: ReservationOverview, meta: { requiresAuth: true }},
     { path: "/resource_request", component: ResourceRequest, meta: { requiresAuth: true }},
-    { path: "/request_overview", component: RequestOverview, meta: { requiresAuth: true }}
+    { path: "/request_overview", component: RequestOverview, meta: { requiresAuth: true }},
+    { path: "/user_overview", component: UserOverview, meta: { requiresAuth: true }},
 
 ];
 
