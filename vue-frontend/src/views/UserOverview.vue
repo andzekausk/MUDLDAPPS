@@ -5,6 +5,7 @@ import axios from 'axios';
 const users = ref([]);
 const roles = ['lietotājs', 'pārvaldnieks', 'laborants', 'administrators'];
 const selectedRole = ref('');
+const searchQuery = ref('');
 
 const fetchUsers = async () => {
   try {
@@ -19,8 +20,12 @@ const fetchUsers = async () => {
 };
 
 const filteredUsers = computed(() => {
-  if (!selectedRole.value) return users.value;
-  return users.value.filter(user => user.roles.includes(selectedRole.value));
+  return users.value.filter(user => {
+    const matchesRole = !selectedRole.value || user.roles.includes(selectedRole.value);
+    const matchesSearch = user.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                          user.email.toLowerCase().includes(searchQuery.value.toLowerCase());
+    return matchesRole && matchesSearch;
+  });
 });
 
 onMounted(fetchUsers);
@@ -31,8 +36,14 @@ onMounted(fetchUsers);
     <h1 class="text-xl font-bold mb-4">Lietotāju pārvaldība</h1>
     
     <div class="mb-4">
-      <label for="role-filter" class="mr-2">Filtrēt pēc lomas:</label>
-      <select id="role-filter" v-model="selectedRole" class="border p-2">
+        <input 
+        type="text" 
+        v-model="searchQuery" 
+        placeholder="Meklēt" 
+        class="border p-2 w-full"
+        />
+        <label for="role-filter" class="mr-2">Filtrēt pēc lomas:</label>
+        <select id="role-filter" v-model="selectedRole" class="border p-2">
         <option value="">Visi</option>
         <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
       </select>
