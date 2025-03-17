@@ -19,6 +19,15 @@ const fetchComputers = async () => {
     }
 };
 
+const toggleComputerSelection = (computerId) => {
+    const index = selectedComputers.value.indexOf(computerId);
+    if (index === -1) {
+        selectedComputers.value.push(computerId);
+    } else {
+        selectedComputers.value.splice(index, 1);
+    }
+};
+
 const addTimeSlot = () => {
     timeSlots.value.push({ fromTime: "", toTime: "" });
 };
@@ -28,6 +37,7 @@ const removeTimeSlot = (index) => {
         timeSlots.value.splice(index, 1);
     }
 };
+
 const submitRequest = async () => {
     if (selectedComputers.value.length === 0 || timeSlots.value.some(slot => !slot.fromTime || !slot.toTime)) {
         alert("Lūdzu izvēlieties vismaz vienu datoru un laikus.");
@@ -80,10 +90,15 @@ onMounted(fetchComputers);
         
         <label>Izvēlieties datorus:</label>
         <div class="computer-list">
-            <label v-for="computer in computers" :key="computer.computer_id">
-                <input type="checkbox" :value="computer.computer_id" v-model="selectedComputers" />
+            <div 
+                v-for="computer in computers" 
+                :key="computer.computer_id"
+                class="computer-item"
+                :class="{ selected: selectedComputers.includes(computer.computer_id) }"
+                @click="toggleComputerSelection(computer.computer_id)"
+            >
                 {{ computer.computer_name }}
-            </label>
+            </div>
         </div>
 
         <label>Izvēlieties laikus:</label>
@@ -124,6 +139,26 @@ label {
     margin-bottom: 10px;
 }
 
+.computer-item {
+    padding: 15px;
+    border: 2px solid #ccc;
+    text-align: center;
+    cursor: pointer;
+    background: #f0f0f0;
+    transition: all 0.2s ease-in-out;
+    border-radius: 8px;
+}
+
+.computer-item:hover {
+    background: #e0e0e0;
+}
+
+.computer-item.selected {
+    background: #4caf50;
+    color: white;
+    border-color: #388e3c;
+}
+
 input, textarea, button {
     display: block;
     width: 100%;
@@ -148,5 +183,4 @@ button {
 button:hover {
     background: #45a049;
 }
-
 </style>
