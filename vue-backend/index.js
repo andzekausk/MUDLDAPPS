@@ -9,6 +9,9 @@ const authRoutes = require("./routes/authRoutes");
 const reservationRoutes = require("./routes/reservationRoutes");
 const requestRoutes = require("./routes/requestRoutes");
 const userRoutes = require("./routes/userRoutes");
+const userRolesRoutes = require("./routes/userRolesRoutes");
+const rolesRoutes = require("./routes/rolesRoutes");
+
 const app = express();
 app.use(cors());
 // app.use(cors({origin: "*"}));
@@ -27,6 +30,8 @@ app.use("/", authRoutes);
 app.use("/api", reservationRoutes);
 app.use("/api", requestRoutes);
 app.use("/api", userRoutes);
+app.use("/api", userRolesRoutes);
+app.use("/api", rolesRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
