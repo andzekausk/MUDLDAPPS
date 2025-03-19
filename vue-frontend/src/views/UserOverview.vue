@@ -8,11 +8,11 @@ const selectedRole = ref('');
 const searchQuery = ref('');
 const showModal = ref(false);
 const selectedUser = ref(null);
-const selectedUserRoles = ref([]); // Separate variable for role selection
+const selectedUserRoles = ref([]);
 
 const openModal = (user) => {
   selectedUser.value = { ...user };
-  selectedUserRoles.value = [...user.roles]; // Clone current roles
+  selectedUserRoles.value = [...user.roles];
   showModal.value = true;
 };
 
@@ -27,7 +27,7 @@ const fetchUsers = async () => {
     const response = await axios.get('http://localhost:3000/api/users');
     users.value = response.data.map(user => ({
       ...user,
-      roles: user.roles || [] // Ensure roles are an array
+      roles: user.roles || [],
     }));
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -43,25 +43,45 @@ const fetchRoles = async () => {
   }
 };
 
+async function addRole(userId, roleId) {
+    await axios.post("http://localhost:3000/api/user_roles/assign", { userId, roleId });
+}
+
+async function removeRole(userId, roleId) {
+    await axios.delete("http://localhost:3000/api/user_roles/remove", { data: { userId, roleId } });
+}
+
 const saveUserRoles = async () => {
   if (!selectedUser.value) return;
-  
-  try {
-    await axios.put(`http://localhost:3000/api/user_roles/${selectedUser.value.user_id}`, {
-      roles: selectedUserRoles.value
-    });
 
-    // Update user roles in the table after saving
-    const userIndex = users.value.findIndex(user => user.user_id === selectedUser.value.user_id);
-    if (userIndex !== -1) {
-      users.value[userIndex].roles = [...selectedUserRoles.value];
+  try {
+    const roleMap = Object.fromEntries(roles.value.map(role => [role.name, role.role_id]));
+
+    console.log("Role Mapping:", roleMap);
+    console.log("Selected Roles:", selectedUserRoles.value);
+
+    const rolesToAdd = selectedUserRoles.value.filter(role => !selectedUser.value.roles.includes(role));
+
+    for (const role of rolesToAdd) {
+      const roleId = roleMap[role];
+      console.log(`Assigning role: ${role} -> roleId: ${roleId}`);
+
+      if (!roleId) {
+        console.warn(`Skipping invalid role: ${role}`);
+        continue;
+      }
+
+      await addRole(selectedUser.value.user_id, roleId);
     }
 
     closeModal();
   } catch (error) {
-    console.error('Error saving user roles:', error);
+    console.error("Error saving user roles:", error);
   }
 };
+
+
+
 
 const filteredUsers = computed(() => {
   return users.value.filter(user => {

@@ -28,43 +28,6 @@ router.post('/user_roles/assign', async (req, res) => {
         res.status(500).json({ message: "Error assigning role" });
     }
 });
-
-router.post('/user_roles/update', async (req, res) => {
-    try {
-      const { userId, roleIds } = req.body;
-  
-      await db.execute('DELETE FROM user_roles WHERE user_id = ?', [userId]); // Remove existing roles
-  
-      if (roleIds.length > 0) {
-        const values = roleIds.map(roleId => [userId, roleId]);
-        await db.query('INSERT INTO user_roles (user_id, role_id) VALUES ?', [values]);
-      }
-  
-      res.json({ message: 'Roles updated successfully' });
-    } catch (error) {
-      res.status(500).json({ error: 'Error updating roles' });
-    }
-  });
-  
-router.put('/user_roles/:user_id', async (req, res) => {
-    const { user_id } = req.params;
-    const { role_ids } = req.body; // array of role_ids
-
-    try {
-        await db.query("DELETE FROM user_roles WHERE user_id = ?", [user_id]);
-
-        if (role_ids.length > 0) {
-            const values = role_ids.map(role_id => [user_id, role_id]);
-            await db.query("INSERT INTO user_roles (user_id, role_id) VALUES ?", [values]);
-        }
-
-        res.json({ success: true });
-    } catch (error) {
-        console.error("Error updating user roles:", error);
-        res.status(500).json({ error: "Failed to update roles" });
-    }
-});
-
   
 router.delete('/user_roles/remove', async (req, res) => {
     try {
