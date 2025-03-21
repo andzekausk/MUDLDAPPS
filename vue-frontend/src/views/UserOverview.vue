@@ -7,12 +7,13 @@ const roles = ref([]);
 const selectedRole = ref('');
 const searchQuery = ref('');
 const showEditModal = ref(false);
+const showCreateModal = ref(false);
 const selectedUser = ref(null);
 const selectedUserRoles = ref([]);
+const newUser = ref({ email: '', user_type: 'Local', username: '', password: '', roles: [] });
 
 const openEditModal = (user) => {
   selectedUser.value = { ...user };
-  // selectedUserRoles.value = Array.isArray(user.roles) ? [...user.roles] : user.roles.split(',');
   selectedUserRoles.value = user.roles.split(',');
   showEditModal.value = true;
 };
@@ -21,7 +22,15 @@ const closeEditModal = () => {
   showEditModal.value = false;
   selectedUser.value = null;
   selectedUserRoles.value = [];
-  location.reload(); // reload page
+};
+
+const openCreateModal = () => {
+  showCreateModal.value = true;
+};
+
+const closeCreateModal = () => {
+  showCreateModal.value = false;
+  newUser.value = { email: '', user_type: 'Local', username: '', password: '', roles: [] };
 };
 
 const fetchUsers = async () => {
@@ -93,6 +102,7 @@ const saveUserRoles = async () => {
     }
     selectedUser.value.roles = [...selectedUserRoles.value];
     closeEditModal();
+    location.reload(); // reload page
   } catch (error) {
     console.error("Error saving user roles:", error);
   }
@@ -142,6 +152,7 @@ onMounted(() => {
             {{ role.name }}
           </option>
         </select>
+        <button @click="openCreateModal" class="bg-green-500 text-white px-3 py-1 rounded">Izveidot lietotāju</button>
     </div>
     
     <table class="w-full border-collapse border border-gray-300">
@@ -197,6 +208,29 @@ onMounted(() => {
       <div class="flex justify-end gap-2 mt-4">
         <button @click="closeEditModal" class="bg-gray-400 text-white px-4 py-2 rounded">Atcelt</button>
         <button @click="saveUserRoles(selectedUser)" class="bg-green-500 text-white px-4 py-2 rounded">Saglabāt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div v-if="showCreateModal" class="modal-container">
+    <div class="modal-content">
+      <h2 class="text-lg font-bold mb-4">Izveidot lietotāju</h2>
+      <input v-model="newUser.email" placeholder="E-pasts" class="border p-2 w-full mb-2" />
+      <select v-model="newUser.user_type" class="border p-2 w-full mb-2">
+        <option value="Google">Google</option>
+        <option value="Local">Local</option>
+      </select>
+      <input v-if="newUser.user_type === 'Local'" v-model="newUser.username" placeholder="Lietotājvārds" class="border p-2 w-full mb-2" />
+      <input v-if="newUser.user_type === 'Local'" v-model="newUser.password" placeholder="Parole" type="password" class="border p-2 w-full mb-2" />
+      <div class="mb-2">
+        <label v-for="role in roles" :key="role.role_id" class="flex items-center gap-2">
+          <input type="checkbox" @change="toggleNewUserRole(role.name)" /> {{ role.name }}
+        </label>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button @click="closeCreateModal" class="bg-gray-400 text-white px-4 py-2 rounded">Atcelt</button>
+        <button @click="saveNewUser" class="bg-green-500 text-white px-4 py-2 rounded">Saglabāt</button>
       </div>
     </div>
   </div>

@@ -11,10 +11,10 @@ const requestRoutes = require("./routes/requestRoutes");
 const userRoutes = require("./routes/userRoutes");
 const userRolesRoutes = require("./routes/userRolesRoutes");
 const rolesRoutes = require("./routes/rolesRoutes");
+const localUserRoutes = require("./routes/localUserRoutes");
 
 const app = express();
 app.use(cors());
-// app.use(cors({origin: "*"}));
 app.use(bodyParser.json());
 
 admin.initializeApp({
@@ -32,9 +32,9 @@ app.use("/api", requestRoutes);
 app.use("/api", userRoutes);
 app.use("/api", userRolesRoutes);
 app.use("/api", rolesRoutes);
+app.use("/api", localUserRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
-// app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -1,23 +1,15 @@
 const pool = require("../db");
 
-async function createUser({ user_id, user_type, email }) {
+async function createUser({ user_type, email }) {
     const [result] = await pool.query(`
-        INSERT INTO users (user_id, user_type, email) 
-        VALUES (?, ?, ?)
-    `, [user_id, user_type, email]);
+        INSERT INTO users (user_type, email) 
+        VALUES (?, ?)
+    `, [user_type, email]);
 
     return { user_id: result.insertId, user_type, email };
 }
 
 async function getUsers() {
-    // const [rows] = await pool.query(`SELECT * FROM users`);
-
-    // const [rows] = await pool.query(`
-    //     SELECT users.user_id, users.email, users.user_type, local_users.username
-    //     FROM users
-    //     LEFT JOIN local_users ON users.user_id = local_users.local_user_id;
-    // `);
-
     const [rows] = await pool.query(`
         SELECT users.user_id, users.email, users.user_type, local_users.username, 
         GROUP_CONCAT(roles.name) AS roles
@@ -31,14 +23,6 @@ async function getUsers() {
 }
 
 async function getUserById(userId) {
-    // const [rows] = await pool.query(`SELECT * FROM users WHERE user_id = ?`, [userId]);
-
-    // const [rows] = await pool.query(`
-    //     SELECT users.user_id, users.email, users.user_type, local_users.username
-    //     FROM users
-    //     LEFT JOIN local_users ON users.user_id = local_users.local_user_id WHERE user_id = ?
-    // `, [userId]);
-
     const [rows] = await pool.query(`
         SELECT users.user_id, users.email, users.user_type, local_users.username, 
         GROUP_CONCAT(roles.name) AS roles
