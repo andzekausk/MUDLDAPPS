@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+import bcrypt from 'bcryptjs';
 
 const users = ref([]);
 const roles = ref([]);
@@ -108,6 +109,47 @@ const saveUserRoles = async () => {
   }
 };
 
+const saveNewUser = async () => {
+  try {
+    let userId;
+    
+    const userResponse = await axios.post('http://localhost:3000/api/users', {
+      email: newUser.value.email,
+      user_type: newUser.value.user_type,
+    });
+
+    if (userResponse.data.user_id) {
+      userId = userResponse.data.user_id;
+
+      if (newUser.value.user_type === 'Local') {
+        const hashedPassword = await bcrypt.hash(newUser.value.password, 10);
+        await axios.post('http://localhost:3000/api/local_users', {
+          user_id: userId,
+          username: newUser.value.username,
+          password_hash: hashedPassword,
+        });
+      }
+
+      for (const role of newUser.value.roles) {
+        const roleId = roles.value.find(r => r.name === role)?.role_id;
+        if (roleId) {
+          await axios.post('http://localhost:3000/api/user_roles/assign', { userId, roleId });
+        }
+        if (!roleId) {
+          console.warn(`Skipping invalid role: ${role}`);
+          continue;
+        }
+        await addRole(userId, roleId);
+      }
+    }
+
+    closeCreateModal();
+    fetchUsers();
+  } catch (error) {
+    console.error('Error creating user:', error);
+  }
+};
+
 const toggleRole = (roleName) => {
   if (!selectedUser.value) return;
 
@@ -118,6 +160,13 @@ const toggleRole = (roleName) => {
   }
 };
 
+const toggleNewUserRole = (roleName) => {
+  if (newUser.value.roles.includes(roleName)) {
+    newUser.value.roles = newUser.value.roles.filter(r => r !== roleName);
+  } else {
+    newUser.value.roles.push(roleName);
+  }
+};
 
 const filteredUsers = computed(() => {
   return users.value.filter(user => {
@@ -225,7 +274,7 @@ onMounted(() => {
       <input v-if="newUser.user_type === 'Local'" v-model="newUser.password" placeholder="Parole" type="password" class="border p-2 w-full mb-2" />
       <div class="mb-2">
         <label v-for="role in roles" :key="role.role_id" class="flex items-center gap-2">
-          <input type="checkbox" @change="toggleNewUserRole(role.name)" /> {{ role.name }}
+          <input type="checkbox" @change="() => toggleNewUserRole(role.name, newUser)" /> {{ role.name }}
         </label>
       </div>
       <div class="flex justify-end gap-2">
