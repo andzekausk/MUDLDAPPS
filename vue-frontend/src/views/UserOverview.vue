@@ -6,20 +6,22 @@ const users = ref([]);
 const roles = ref([]);
 const selectedRole = ref('');
 const searchQuery = ref('');
-const showModal = ref(false);
+const showEditModal = ref(false);
 const selectedUser = ref(null);
 const selectedUserRoles = ref([]);
 
-const openModal = (user) => {
+const openEditModal = (user) => {
   selectedUser.value = { ...user };
-  selectedUserRoles.value = [...user.roles];
-  showModal.value = true;
+  // selectedUserRoles.value = Array.isArray(user.roles) ? [...user.roles] : user.roles.split(',');
+  selectedUserRoles.value = user.roles.split(',');
+  showEditModal.value = true;
 };
 
-const closeModal = () => {
-  showModal.value = false;
+const closeEditModal = () => {
+  showEditModal.value = false;
   selectedUser.value = null;
   selectedUserRoles.value = [];
+  location.reload(); // reload page
 };
 
 const fetchUsers = async () => {
@@ -59,8 +61,12 @@ const saveUserRoles = async () => {
 
     console.log("Role Mapping:", roleMap);
     console.log("Selected Roles:", selectedUserRoles.value);
+    const originalRoles = selectedUser.value.roles.split(',');
+
+    console.log("Original Roles:", originalRoles);
 
     const rolesToAdd = selectedUserRoles.value.filter(role => !selectedUser.value.roles.includes(role));
+    const rolesToRemove = originalRoles.filter(role => !selectedUserRoles.value.includes(role));
 
     for (const role of rolesToAdd) {
       const roleId = roleMap[role];
@@ -74,13 +80,33 @@ const saveUserRoles = async () => {
       await addRole(selectedUser.value.user_id, roleId);
     }
 
-    closeModal();
+    for (const role of rolesToRemove) {
+      const roleId = roleMap[role];
+      console.log(`Remove role: ${role} -> roleId: ${roleId}`);
+
+      if (!roleId) {
+        console.warn(`Skipping invalid role: ${role}`);
+        continue;
+      }
+
+      await removeRole(selectedUser.value.user_id, roleId);
+    }
+    selectedUser.value.roles = [...selectedUserRoles.value];
+    closeEditModal();
   } catch (error) {
     console.error("Error saving user roles:", error);
   }
 };
 
+const toggleRole = (roleName) => {
+  if (!selectedUser.value) return;
 
+  if (selectedUserRoles.value.includes(roleName)) {
+    selectedUserRoles.value = selectedUserRoles.value.filter(r => r !== roleName);
+  } else {
+    selectedUserRoles.value.push(roleName);
+  }
+};
 
 
 const filteredUsers = computed(() => {
@@ -142,35 +168,34 @@ onMounted(() => {
                 </div>
             </td>
             <td class="border p-2">
-                <button @click="openModal(user)" class="bg-blue-500 text-white px-3 py-1 rounded">Rediģēt</button>
+                <button @click="openEditModal(user)" class="bg-blue-500 text-white px-3 py-1 rounded">Rediģēt</button>
             </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- MODAL -->
-  <div v-if="showModal" class="modal-container">
+  <!-- EDIT MODAL -->
+  <div v-if="showEditModal" class="modal-container">
     <div class="modal-content">
       <h2 class="text-lg font-bold mb-4">Rediģēt lietotāju</h2>
       <p><strong>E-pasts:</strong> {{ selectedUser?.email }}</p>
       <p><strong>Lietotājvārds:</strong> {{ selectedUser?.username || '-' }}</p>
       <p><strong>Lietotāja tips:</strong> {{ selectedUser?.user_type }}</p>
-
-      <div class="mt-4">
-        <h3 class="font-semibold mb-2">Lomas:</h3>
-        <label v-for="role in roles" :key="role.role_id" class="flex items-center gap-2 mb-1">
+      <td class="border p-2">
+        <label v-for="role in roles" :key="role.role_id" class="flex items-center gap-1">
           <input 
             type="checkbox" 
-            v-model="selectedUserRoles" 
-            :value="role.name" 
+            class="toggle-switch"
+            :checked="selectedUserRoles.includes(role.name)" 
+            @change="toggleRole(role.name)" 
           />
           {{ role.name }}
         </label>
-      </div>
+      </td>
 
       <div class="flex justify-end gap-2 mt-4">
-        <button @click="closeModal" class="bg-gray-400 text-white px-4 py-2 rounded">Atcelt</button>
+        <button @click="closeEditModal" class="bg-gray-400 text-white px-4 py-2 rounded">Atcelt</button>
         <button @click="saveUserRoles(selectedUser)" class="bg-green-500 text-white px-4 py-2 rounded">Saglabāt</button>
       </div>
     </div>
@@ -238,5 +263,37 @@ button {
   border-radius: 0.5rem;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
   width: 400px;
+}
+
+.toggle-switch {
+  appearance: none;
+  width: 40px;
+  height: 20px;
+  background: #ccc;
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.3s;
+}
+
+.toggle-switch:checked {
+  background: #4CAF50;
+}
+
+.toggle-switch::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 1px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle-switch:checked::before {
+  transform: translateX(20px);
 }
 </style>
