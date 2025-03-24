@@ -11,7 +11,7 @@ const showEditModal = ref(false);
 const showCreateModal = ref(false);
 const selectedUser = ref(null);
 const selectedUserRoles = ref([]);
-const newUser = ref({ email: '', user_type: 'Local', username: '', password: '', roles: [] });
+const newUser = ref({ email: '', user_type: 'Local', username: '', password: '', phone_number: '', is_active: true, roles: [] });
 
 const openEditModal = (user) => {
   selectedUser.value = { ...user };
@@ -31,7 +31,7 @@ const openCreateModal = () => {
 
 const closeCreateModal = () => {
   showCreateModal.value = false;
-  newUser.value = { email: '', user_type: 'Local', username: '', password: '', roles: [] };
+  newUser.value = { email: '', user_type: 'Local', username: '', password: '', phone_number: '', is_active: true, roles: [] };
 };
 
 const fetchUsers = async () => {
@@ -40,6 +40,7 @@ const fetchUsers = async () => {
     users.value = response.data.map(user => ({
       ...user,
       roles: user.roles || [],
+      is_active: !!user.is_active, // ensures it's a boolean
     }));
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -65,45 +66,34 @@ async function removeRole(userId, roleId) {
 
 const saveUserRoles = async () => {
   if (!selectedUser.value) return;
-
   try {
     const roleMap = Object.fromEntries(roles.value.map(role => [role.name, role.role_id]));
 
-    console.log("Role Mapping:", roleMap);
-    console.log("Selected Roles:", selectedUserRoles.value);
     const originalRoles = selectedUser.value.roles.split(',');
-
-    console.log("Original Roles:", originalRoles);
 
     const rolesToAdd = selectedUserRoles.value.filter(role => !selectedUser.value.roles.includes(role));
     const rolesToRemove = originalRoles.filter(role => !selectedUserRoles.value.includes(role));
 
     for (const role of rolesToAdd) {
       const roleId = roleMap[role];
-      console.log(`Assigning role: ${role} -> roleId: ${roleId}`);
 
-      if (!roleId) {
-        console.warn(`Skipping invalid role: ${role}`);
-        continue;
-      }
-
-      await addRole(selectedUser.value.user_id, roleId);
+      if (roleId) 
+        await addRole(selectedUser.value.user_id, roleId);
     }
 
     for (const role of rolesToRemove) {
       const roleId = roleMap[role];
-      console.log(`Remove role: ${role} -> roleId: ${roleId}`);
 
-      if (!roleId) {
-        console.warn(`Skipping invalid role: ${role}`);
-        continue;
-      }
-
-      await removeRole(selectedUser.value.user_id, roleId);
+      if (roleId) 
+        await removeRole(selectedUser.value.user_id, roleId);
     }
+    await axios.put(`http://localhost:3000/api/users/${selectedUser.value.user_id}`, {
+      phone_number: selectedUser.value.phone_number,
+      is_active: selectedUser.value.is_active
+    });
     selectedUser.value.roles = [...selectedUserRoles.value];
     closeEditModal();
-    location.reload(); // reload page
+    fetchUsers();
   } catch (error) {
     console.error("Error saving user roles:", error);
   }
@@ -112,10 +102,11 @@ const saveUserRoles = async () => {
 const saveNewUser = async () => {
   try {
     let userId;
-    
     const userResponse = await axios.post('http://localhost:3000/api/users', {
       email: newUser.value.email,
       user_type: newUser.value.user_type,
+      phone_number: newUser.value.phone_number,
+      is_active: newUser.value.is_active,
     });
 
     if (userResponse.data.user_id) {
@@ -134,15 +125,10 @@ const saveNewUser = async () => {
         const roleId = roles.value.find(r => r.name === role)?.role_id;
         if (roleId) {
           await axios.post('http://localhost:3000/api/user_roles/assign', { userId, roleId });
+          await addRole(userId, roleId);
         }
-        if (!roleId) {
-          console.warn(`Skipping invalid role: ${role}`);
-          continue;
-        }
-        await addRole(userId, roleId);
       }
     }
-
     closeCreateModal();
     fetchUsers();
   } catch (error) {
@@ -209,15 +195,18 @@ onMounted(() => {
             <tr class="bg-gray-100">
                 <th class="border p-2">E-pasts</th>
                 <th class="border p-2">Lietotājvārds</th>
+                <th class="border p-2">Telefona nr.</th>
                 <th class="border p-2">Lietotāja tips</th>
                 <th class="border p-2">Lomas</th>
+                <th class="border p-2">Aktīvs</th>
                 <th class="border p-2">Darbība</th>
             </tr>
         </thead>
         <tbody>
-        <tr v-for="user in filteredUsers" :key="user.user_id" class="border">
+        <tr v-for="user in filteredUsers" :key="user.user_id" class="border" :class="{'bg-gray-200': !user.is_active}">
             <td class="border p-2">{{ user.email }}</td>
             <td class="border p-2">{{ user.username || '-' }}</td>
+            <td class="border p-2">{{ user.phone_number || '-' }}</td>
             <td class="border p-2">{{ user.user_type }}</td>
             <td class="border p-2">
                 <div class="flex gap-2">
@@ -227,6 +216,7 @@ onMounted(() => {
                     </label>
                 </div>
             </td>
+            <td class="border p-2">{{ user.is_active ? 'Jā' : 'Nē' }}</td>
             <td class="border p-2">
                 <button @click="openEditModal(user)" class="bg-blue-500 text-white px-3 py-1 rounded">Rediģēt</button>
             </td>
@@ -235,13 +225,14 @@ onMounted(() => {
     </table>
   </div>
 
-  <!-- EDIT MODAL -->
+  <!-- Edit Modal -->
   <div v-if="showEditModal" class="modal-container">
     <div class="modal-content">
       <h2 class="text-lg font-bold mb-4">Rediģēt lietotāju</h2>
       <p><strong>E-pasts:</strong> {{ selectedUser?.email }}</p>
       <p><strong>Lietotājvārds:</strong> {{ selectedUser?.username || '-' }}</p>
       <p><strong>Lietotāja tips:</strong> {{ selectedUser?.user_type }}</p>
+      <input v-model="selectedUser.phone_number" placeholder="Telefona numurs" class="border p-2 w-full mb-2" />
       <td class="border p-2">
         <label v-for="role in roles" :key="role.role_id" class="flex items-center gap-1">
           <input 
@@ -253,7 +244,9 @@ onMounted(() => {
           {{ role.name }}
         </label>
       </td>
-
+      <label class="flex items-center gap-2">
+        <input type="checkbox" v-model="selectedUser.is_active" /> Aktīvs
+      </label>
       <div class="flex justify-end gap-2 mt-4">
         <button @click="closeEditModal" class="bg-gray-400 text-white px-4 py-2 rounded">Atcelt</button>
         <button @click="saveUserRoles(selectedUser)" class="bg-green-500 text-white px-4 py-2 rounded">Saglabāt</button>
@@ -266,6 +259,7 @@ onMounted(() => {
     <div class="modal-content">
       <h2 class="text-lg font-bold mb-4">Izveidot lietotāju</h2>
       <input v-model="newUser.email" placeholder="E-pasts" class="border p-2 w-full mb-2" />
+      <input v-model="newUser.phone_number" placeholder="Telefona numurs" class="border p-2 w-full mb-2" />
       <select v-model="newUser.user_type" class="border p-2 w-full mb-2">
         <option value="Google">Google</option>
         <option value="Local">Local</option>
@@ -277,6 +271,9 @@ onMounted(() => {
           <input type="checkbox" @change="() => toggleNewUserRole(role.name, newUser)" /> {{ role.name }}
         </label>
       </div>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" v-model="newUser.is_active" /> Aktīvs
+      </label>
       <div class="flex justify-end gap-2">
         <button @click="closeCreateModal" class="bg-gray-400 text-white px-4 py-2 rounded">Atcelt</button>
         <button @click="saveNewUser" class="bg-green-500 text-white px-4 py-2 rounded">Saglabāt</button>
@@ -288,6 +285,10 @@ onMounted(() => {
 <style scoped>
 html, body {
   overflow: visible !important;
+}
+
+.bg-gray-200 {
+  background-color: #e0e0e0;
 }
 
 .fixed {

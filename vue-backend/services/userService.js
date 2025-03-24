@@ -1,17 +1,17 @@
 const pool = require("../db");
 
-async function createUser({ user_type, email }) {
+async function createUser({ user_type, email, phone_number, is_active }) {
     const [result] = await pool.query(`
-        INSERT INTO users (user_type, email) 
-        VALUES (?, ?)
-    `, [user_type, email]);
+        INSERT INTO users (user_type, email, phone_number, is_active) 
+        VALUES (?, ?, ?, ?)
+    `, [user_type, email, phone_number, is_active]);
 
-    return { user_id: result.insertId, user_type, email };
+    return { user_id: result.insertId, user_type, email, phone_number, is_active };
 }
 
 async function getUsers() {
     const [rows] = await pool.query(`
-        SELECT users.user_id, users.email, users.user_type, local_users.username, 
+        SELECT users.user_id, users.email, users.phone_number, users.user_type, users.is_active, local_users.username, 
         GROUP_CONCAT(roles.name) AS roles
         FROM users
         LEFT JOIN local_users ON users.user_id = local_users.user_id
@@ -24,7 +24,7 @@ async function getUsers() {
 
 async function getUserById(userId) {
     const [rows] = await pool.query(`
-        SELECT users.user_id, users.email, users.user_type, local_users.username, 
+        SELECT users.user_id, users.email, users.phone_number, users.user_type, users.is_active, local_users.username, 
         GROUP_CONCAT(roles.name) AS roles
         FROM users
         LEFT JOIN local_users ON users.user_id = local_users.user_id
@@ -35,10 +35,17 @@ async function getUserById(userId) {
     return rows[0] || null;
 }
 
-async function updateUser(userId, { user_type, email }) {
+// async function updateUser(userId, { user_type, email }) {
+//     await pool.query(
+//         `UPDATE users SET user_type = ?, email = ? WHERE user_id = ?`,
+//         [user_type, email, userId]
+//     );
+// }
+
+async function updateUser(userId, { phone_number, is_active }) {
     await pool.query(
-        `UPDATE users SET user_type = ?, email = ? WHERE user_id = ?`,
-        [user_type, email, userId]
+        `UPDATE users SET phone_number = ?, is_active = ? WHERE user_id = ?`,
+        [phone_number, is_active, userId]
     );
 }
 

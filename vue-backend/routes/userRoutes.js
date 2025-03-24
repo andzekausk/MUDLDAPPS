@@ -34,8 +34,8 @@ router.get("/users/:id", async (req, res) => {
 
 router.post("/users", async (req, res) => {
   try {
-    const { user_id, user_type, email } = req.body;
-    const newUser = await createUser({ user_id, user_type, email });
+    const { user_id, user_type, email, phone_number, is_active } = req.body;
+    const newUser = await createUser({ user_id, user_type, email, phone_number, is_active });
     res.status(201).json(newUser);
   } catch (error) {
     console.error("Error creating user:", error);
@@ -43,16 +43,28 @@ router.post("/users", async (req, res) => {
   }
 });
 
+// router.put("/users/:id", async (req, res) => {
+//   try {
+//     const { user_type, email } = req.body;
+//     await updateUser(req.params.id, { user_type, email });
+//     res.json({ message: "User updated successfully" });
+//   } catch (error) {
+//     console.error("Error updating user:", error);
+//     res.status(500).json({ message: "Error updating user" });
+//   }
+// });
+
 router.put("/users/:id", async (req, res) => {
   try {
-    const { user_type, email } = req.body;
-    await updateUser(req.params.id, { user_type, email });
+    const { phone_number, is_active } = req.body;
+    await updateUser(req.params.id, { phone_number, is_active });
     res.json({ message: "User updated successfully" });
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(500).json({ message: "Error updating user" });
   }
 });
+
 
 router.delete("/users/:id", async (req, res) => {
   try {
