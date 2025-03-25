@@ -57,6 +57,10 @@ async function loginWithGoogle(idToken) {
         let user;
         if (userRows.length > 0) {
             user = userRows[0];
+            // if user is deactivated don't allow login
+            if (user.is_active == 0){
+                isAllowed = false;
+            }
         } else {
             return { email, isAllowed };
         }
@@ -73,6 +77,7 @@ async function loginWithGoogle(idToken) {
 }
 
 async function loginWithUsernamePassword(username, password) {
+    let isAllowed = true;
     try {
         const [rows] = await pool.query(`
             SELECT * FROM users
@@ -85,6 +90,10 @@ async function loginWithUsernamePassword(username, password) {
         }
 
         const user = rows[0];
+        // if user is deactivated don't allow login
+        if (user.is_active == 0){
+            isAllowed = false;
+        }
         const passwordMatch = bcrypt.compareSync(password, user.password_hash);
         if (!passwordMatch) {
             return { error: "Invalid credentials", status: 401 };
@@ -95,7 +104,7 @@ async function loginWithUsernamePassword(username, password) {
             expiresIn: process.env.JWT_EXPIRES_IN || "1h",
         });
 
-        return { token, email: user.email, roles, isAllowed: true };
+        return { token, email: user.email, roles, isAllowed };
     } catch (error) {
         console.error("Login error:", error);
         return { error: "Server error", status: 500 };

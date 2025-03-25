@@ -23,9 +23,9 @@ export const useAuthStore = defineStore("auth", {
           });
   
           const data = await response.json();
-          
+          console.log("is active: ",data.isAllowed);
           if(!data.isAllowed){
-            alert("Neatļauts domēns!");
+            alert("Neatļauts domēns vai deaktivizēts lietotājs!");
             return;
           }
           if (data.isAllowed && !data.token){
@@ -54,6 +54,10 @@ export const useAuthStore = defineStore("auth", {
         if (!response.ok) throw new Error("Invalid username or password");
 
         const data = await response.json();
+        if(!data.isAllowed){
+          alert("Neatļauts domēns vai deaktivizēts lietotājs!");
+          return;
+        }
         this.setUserSession(data);
       } catch (error) {
         console.error("Login error:", error);

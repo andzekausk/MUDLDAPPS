@@ -124,7 +124,7 @@ const saveNewUser = async () => {
       for (const role of newUser.value.roles) {
         const roleId = roles.value.find(r => r.name === role)?.role_id;
         if (roleId) {
-          await axios.post('http://localhost:3000/api/user_roles/assign', { userId, roleId });
+          // await axios.post('http://localhost:3000/api/user_roles/assign', { userId, roleId });
           await addRole(userId, roleId);
         }
       }

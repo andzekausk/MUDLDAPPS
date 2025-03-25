@@ -16,13 +16,18 @@ const submitRegistration = async () => {
   errorMessage.value = "";
 
   try {
-    await axios.post('http://localhost:3000/api/users', {
+    let userId;
+    let roleId = 1; // change this later
+    const userResponse = await axios.post('http://localhost:3000/api/users', {
       email,
       user_type: "google",
       phone_number: phone_number.value,
       is_active: true,
     });
-
+    if (userResponse.data.user_id) {
+        userId = userResponse.data.user_id;
+        await axios.post('http://localhost:3000/api/user_roles/assign', { userId, roleId});
+    }
     router.push("/");
   } catch (error) {
     errorMessage.value = "Neizdevās reģistrācija";
