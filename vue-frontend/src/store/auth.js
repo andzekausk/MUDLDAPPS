@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { loginWithGoogle, logout as firebaseLogout } from "../firebase";
+import router from  "../router";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -25,6 +26,12 @@ export const useAuthStore = defineStore("auth", {
           
           if(!data.isAllowed){
             alert("Neatļauts domēns!");
+            return;
+          }
+          if (data.isAllowed && !data.token){
+            setTimeout(() => {
+              router.push({ path: "/register", query: { email: data.email } });
+            }, 500); // delay so it doesn't try to redirect the login popup
             return;
           }
 

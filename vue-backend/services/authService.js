@@ -48,7 +48,6 @@ async function loginWithGoogle(idToken) {
         const email = decodedToken.email;
         const allowedDomains = await getAllowedDomains();
         const isAllowed = allowedDomains.includes(email.split("@")[1]);
-
         if (!isAllowed) {
             return { error: "Email domain not allowed", status: 403 };
         }
@@ -59,7 +58,7 @@ async function loginWithGoogle(idToken) {
         if (userRows.length > 0) {
             user = userRows[0];
         } else {
-            return { error: "User not found, please register first.", status: 404 };
+            return { email, isAllowed };
         }
 
         const roles = await getGoogleUserRoles(email);
@@ -67,7 +66,6 @@ async function loginWithGoogle(idToken) {
 
         const token = generateToken(user);
         return { token, email, roles, isAllowed };
-        // return { email, roles, isAllowed };
     } catch (error) {
         console.error("Error verifying token:", error);
         return { error: "Unauthorized", status: 401 };
