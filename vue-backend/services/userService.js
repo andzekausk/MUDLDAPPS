@@ -30,17 +30,19 @@ async function getUserById(userId) {
         LEFT JOIN local_users ON users.user_id = local_users.user_id
         LEFT JOIN user_roles ON users.user_id = user_roles.user_id
         LEFT JOIN roles ON user_roles.role_id = roles.role_id
-        GROUP BY users.user_id WHERE user_id = ?
+        GROUP BY users.user_id WHERE user_id = ?;
     `, [userId]);
     return rows[0] || null;
 }
 
-// async function updateUser(userId, { user_type, email }) {
-//     await pool.query(
-//         `UPDATE users SET user_type = ?, email = ? WHERE user_id = ?`,
-//         [user_type, email, userId]
-//     );
-// }
+async function getGoogleUserByEmail(email) {
+    const [rows] = await pool.query(`
+        SELECT * FROM users 
+        WHERE user_type = 'google'
+        AND email = ?
+    `, [email]);
+    return rows[0] || null;
+}
 
 async function updateUser(userId, { phone_number, is_active }) {
     await pool.query(
@@ -57,6 +59,7 @@ module.exports = {
     createUser,
     getUsers,
     getUserById,
+    getGoogleUserByEmail,
     updateUser,
     deleteUser
 };

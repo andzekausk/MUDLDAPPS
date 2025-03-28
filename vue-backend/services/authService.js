@@ -12,6 +12,7 @@ async function getUserRoles(username) {
         JOIN user_roles ON users.user_id = user_roles.user_id
         JOIN roles ON user_roles.role_id = roles.role_id
         WHERE local_users.username = ?
+        ORDER BY roles.role_id;
     `, [username]);
 
     return rows.map(row => row.name);
@@ -25,6 +26,7 @@ async function getGoogleUserRoles(email) {
         JOIN roles ON user_roles.role_id = roles.role_id
         WHERE users.user_type = "google"
         AND users.email = ?
+        ORDER BY roles.role_id;
     `, [email]);
 
     return rows.map(row => row.name);
@@ -42,6 +44,7 @@ function generateToken(user) {
         { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 }
+
 async function loginWithGoogle(idToken) {
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -52,22 +55,32 @@ async function loginWithGoogle(idToken) {
             return { error: "Email domain not allowed", status: 403 };
         }
 
+        const [existingGoogleUsers] = await pool.query(
+            "SELECT user_id FROM users WHERE email = ? AND user_type = 'google'", 
+            [email]
+        );
+        
+        if (existingGoogleUsers.length === 0) {
+            await pool.query("INSERT INTO users (email, user_type) VALUES (?, 'google')", [email]);
+        }
         // for generating token
         const [userRows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
-        let user;
-        if (userRows.length > 0) {
-            user = userRows[0];
-            // if user is deactivated don't allow login
-            if (user.is_active == 0){
-                isAllowed = false;
-            }
-        } else {
-            return { email, isAllowed };
+        const user = userRows[0];
+
+        // if user is deactivated don't allow login
+        if (user.is_active == 0){
+            return { email, isAllowed: false};
         }
+        
 
         const roles = await getGoogleUserRoles(email);
-        user.roles = roles;
+ 
+        if (roles.length === 0) {
+            const token = generateToken(user);
+            return { token, email, roles: [], isAllowed };
+        }
 
+        user.roles = roles;
         const token = generateToken(user);
         return { token, email, roles, isAllowed };
     } catch (error) {

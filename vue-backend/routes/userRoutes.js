@@ -2,6 +2,7 @@ const express = require("express");
 const {
   getUsers,
   getUserById,
+  getGoogleUserByEmail,
   createUser,
   updateUser,
   deleteUser
@@ -32,6 +33,19 @@ router.get("/users/:id", async (req, res) => {
   }
 });
 
+router.get("/users/email/:email", async (req, res) => {
+  try {
+    const user = await getGoogleUserByEmail(req.params.email);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Error fetching user" });
+  }
+});
+
 router.post("/users", async (req, res) => {
   try {
     const { user_id, user_type, email, phone_number, is_active } = req.body;
@@ -42,17 +56,6 @@ router.post("/users", async (req, res) => {
     res.status(500).json({ message: "Error creating user" });
   }
 });
-
-// router.put("/users/:id", async (req, res) => {
-//   try {
-//     const { user_type, email } = req.body;
-//     await updateUser(req.params.id, { user_type, email });
-//     res.json({ message: "User updated successfully" });
-//   } catch (error) {
-//     console.error("Error updating user:", error);
-//     res.status(500).json({ message: "Error updating user" });
-//   }
-// });
 
 router.put("/users/:id", async (req, res) => {
   try {

@@ -2,11 +2,14 @@
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import { useAuthStore } from "../store/auth";
+
+const authStore = useAuthStore();
 
 const route = useRoute();
 const router = useRouter();
 
-const email = route.query.email;
+const email = authStore.user.email;
 const phone_number = ref("");
 const isSubmitting = ref(false);
 const errorMessage = ref("");
@@ -16,19 +19,23 @@ const submitRegistration = async () => {
   errorMessage.value = "";
 
   try {
-    let userId;
-    let roleId = 1; // change this later
-    const userResponse = await axios.post('http://localhost:3000/api/users', {
-      email,
-      user_type: "google",
-      phone_number: phone_number.value,
-      is_active: true,
-    });
-    if (userResponse.data.user_id) {
-        userId = userResponse.data.user_id;
-        await axios.post('http://localhost:3000/api/user_roles/assign', { userId, roleId});
+    const userResponse = await axios.get(`http://localhost:3000/api/users/email/${email}`);
+    const user = userResponse.data;
+
+    if (user) {
+      await axios.put(`http://localhost:3000/api/users/${user.user_id}`, {
+        phone_number: phone_number.value,
+        is_active: true,
+      });
+      const roleId = 1;
+      await axios.post('http://localhost:3000/api/user_roles/assign', { userId: user.user_id, roleId });
+      
+      const rolesResponse = await axios.get(`http://localhost:3000/api/user_roles/${user.user_id}`);
+      authStore.roles = rolesResponse.data;
+      router.push("/");
+    } else {
+      errorMessage.value = "Neizdevās atrast lietotāju";
     }
-    router.push("/");
   } catch (error) {
     errorMessage.value = "Neizdevās reģistrācija";
     console.error("Registration error:", error);

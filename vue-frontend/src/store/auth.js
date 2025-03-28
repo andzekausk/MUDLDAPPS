@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { loginWithGoogle, logout as firebaseLogout } from "../firebase";
-import router from  "../router";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -26,12 +25,6 @@ export const useAuthStore = defineStore("auth", {
           console.log("is active: ",data.isAllowed);
           if(!data.isAllowed){
             alert("Neatļauts domēns vai deaktivizēts lietotājs!");
-            return;
-          }
-          if (data.isAllowed && !data.token){
-            setTimeout(() => {
-              router.push({ path: "/register", query: { email: data.email } });
-            }, 500); // delay so it doesn't try to redirect the login popup
             return;
           }
 
@@ -82,11 +75,15 @@ export const useAuthStore = defineStore("auth", {
     },
     setUserSession(data) {
       this.user = { email: data.email };
+      console.log(this.user);
       this.roles = data.roles;
+      console.log(this.roles);
       this.isAllowed = data.isAllowed;
-      this.currentRole = data.roles.includes("administrators") ? "administrators" : "lietotājs";
+      console.log(this.isAllowed);
+      this.currentRole = data.roles.length == 0 ? "" : data.roles[data.roles.length-1];
+      console.log(this.currentRole);
       this.token = data.token;
-
+      console.log(this.token);
       localStorage.setItem("token", data.token);
     },
     async checkAuth() {

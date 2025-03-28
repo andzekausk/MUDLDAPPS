@@ -35,7 +35,11 @@ router.beforeEach(async (to, from, next) => {
     }
     if (to.meta.requiresAuth && !authStore.user) {
       next('/login');
-    } else {
+    }
+    else if (authStore.user && (!authStore.roles || authStore.roles.length === 0) && to.path !== "/register") { // to.path to prevent infinite loop
+      next("/register");
+    }
+    else {
       next();
     }
 });
