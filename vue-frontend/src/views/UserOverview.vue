@@ -36,10 +36,10 @@ const closeCreateModal = () => {
 
 const fetchUsers = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/users');
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users`);
     users.value = response.data.map(user => ({
       ...user,
-      roles: user.roles || [],
+      roles: user.roles,
       is_active: !!user.is_active, // ensures it's a boolean
     }));
   } catch (error) {
@@ -49,7 +49,7 @@ const fetchUsers = async () => {
 
 const fetchRoles = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/roles');
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/roles`);
     roles.value = response.data;
   } catch (error) {
     console.error('Error fetching roles:', error);
@@ -57,11 +57,11 @@ const fetchRoles = async () => {
 };
 
 async function addRole(userId, roleId) {
-    await axios.post("http://localhost:3000/api/user_roles/assign", { userId, roleId });
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/assign`, { userId, roleId });
 }
 
 async function removeRole(userId, roleId) {
-    await axios.delete("http://localhost:3000/api/user_roles/remove", { data: { userId, roleId } });
+    await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/remove`, { data: { userId, roleId } });
 }
 
 const saveUserRoles = async () => {
@@ -87,13 +87,14 @@ const saveUserRoles = async () => {
       if (roleId) 
         await removeRole(selectedUser.value.user_id, roleId);
     }
-    await axios.put(`http://localhost:3000/api/users/${selectedUser.value.user_id}`, {
+    await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/users/${selectedUser.value.user_id}`, {
       phone_number: selectedUser.value.phone_number,
       is_active: selectedUser.value.is_active
     });
     selectedUser.value.roles = [...selectedUserRoles.value];
     closeEditModal();
     fetchUsers();
+    fetchRoles();
   } catch (error) {
     console.error("Error saving user roles:", error);
   }
@@ -102,7 +103,7 @@ const saveUserRoles = async () => {
 const saveNewUser = async () => {
   try {
     let userId;
-    const userResponse = await axios.post('http://localhost:3000/api/users', {
+    const userResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/users`, {
       email: newUser.value.email,
       user_type: newUser.value.user_type,
       phone_number: newUser.value.phone_number,
@@ -114,7 +115,7 @@ const saveNewUser = async () => {
 
       if (newUser.value.user_type === 'Local') {
         const hashedPassword = await bcrypt.hash(newUser.value.password, 10);
-        await axios.post('http://localhost:3000/api/local_users', {
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/local_users`, {
           user_id: userId,
           username: newUser.value.username,
           password_hash: hashedPassword,
@@ -124,7 +125,6 @@ const saveNewUser = async () => {
       for (const role of newUser.value.roles) {
         const roleId = roles.value.find(r => r.name === role)?.role_id;
         if (roleId) {
-          // await axios.post('http://localhost:3000/api/user_roles/assign', { userId, roleId });
           await addRole(userId, roleId);
         }
       }

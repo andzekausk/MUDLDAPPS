@@ -5,6 +5,7 @@ async function getUserRoles(userId) {
     SELECT roles.role_id, roles.name FROM user_roles 
     JOIN roles ON user_roles.role_id = roles.role_id
     WHERE user_roles.user_id = ?
+    ORDER BY roles.role_id;
     `, [userId]);
 return rows;
 }

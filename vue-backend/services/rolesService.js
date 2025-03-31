@@ -4,6 +4,7 @@ async function getAllRoles() {
     const [rows] = await pool.execute(`
         SELECT role_id, name 
         FROM roles
+        ORDER BY role_id;
     `);
     return rows;
 }

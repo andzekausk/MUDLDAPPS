@@ -30,7 +30,8 @@ async function getUserById(userId) {
         LEFT JOIN local_users ON users.user_id = local_users.user_id
         LEFT JOIN user_roles ON users.user_id = user_roles.user_id
         LEFT JOIN roles ON user_roles.role_id = roles.role_id
-        GROUP BY users.user_id WHERE user_id = ?;
+        WHERE users.user_id = ?
+        GROUP BY users.user_id;
     `, [userId]);
     return rows[0] || null;
 }

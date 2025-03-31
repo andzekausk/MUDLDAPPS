@@ -1,41 +1,51 @@
 <script setup>
-import { ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
 import { useAuthStore } from "../store/auth";
+import { jwtDecode } from "jwt-decode";
 
 const authStore = useAuthStore();
-
-const route = useRoute();
 const router = useRouter();
 
-const email = authStore.user.email;
+const user = ref(null);
 const phone_number = ref("");
 const isSubmitting = ref(false);
 const errorMessage = ref("");
+
+const fetchUser = async () => {
+  try {
+    const userId = jwtDecode(authStore.token)?.user_id;
+    if (!userId) throw new Error("User ID not found");
+
+    const userResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/${userId}`);
+    user.value = userResponse.data;
+  } catch (error) {
+    console.error("Failed to fetch user:", error);
+  }
+};
+
+onMounted(fetchUser);
 
 const submitRegistration = async () => {
   isSubmitting.value = true;
   errorMessage.value = "";
 
+  if (!user.value) {
+    alert("Nevarēja iegūt lietotāja informāciju. Lūdzu, ielogojieties vēlreiz.");
+    return;
+  }
   try {
-    const userResponse = await axios.get(`http://localhost:3000/api/users/email/${email}`);
-    const user = userResponse.data;
-
-    if (user) {
-      await axios.put(`http://localhost:3000/api/users/${user.user_id}`, {
-        phone_number: phone_number.value,
-        is_active: true,
-      });
-      const roleId = 1;
-      await axios.post('http://localhost:3000/api/user_roles/assign', { userId: user.user_id, roleId });
-      
-      const rolesResponse = await axios.get(`http://localhost:3000/api/user_roles/${user.user_id}`);
-      authStore.roles = rolesResponse.data;
-      router.push("/");
-    } else {
-      errorMessage.value = "Neizdevās atrast lietotāju";
-    }
+    await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/users/${user.value.user_id}`, {
+      phone_number: phone_number.value,
+      is_active: true,
+    });
+    const roleId = 1;
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/assign`, { userId: user.value.user_id, roleId });
+    
+    const rolesResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/${user.value.user_id}`);
+    authStore.roles = rolesResponse.data;
+    router.push("/");
   } catch (error) {
     errorMessage.value = "Neizdevās reģistrācija";
     console.error("Registration error:", error);
@@ -48,7 +58,7 @@ const submitRegistration = async () => {
 <template>
   <div class="p-4">
     <h1 class="text-xl font-bold mb-4">Pabeigt reģistrāciju</h1>
-    <p class="mb-2">E-pasts: <strong>{{ email }}</strong></p>
+    <p class="mb-2">E-pasts: <strong>{{ user?.email }}</strong></p>
     <input v-model="phone_number" placeholder="Phone Number" class="border p-2 w-full mb-2" />
     <button @click="submitRegistration" :disabled="isSubmitting" class="bg-blue-500 text-white px-4 py-2 rounded">
       Reģistrēties
