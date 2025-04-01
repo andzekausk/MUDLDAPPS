@@ -5,6 +5,10 @@ import axios from "axios";
 const requests = ref([]);
 const statuses = ["all", "pending", "approved", "denied"];
 const selectedStatus = ref("pending");
+const isModalOpen = ref(false);
+const selectedRequest = ref(null);
+const reservations = ref([]);
+
 const fetchRequests = async () => {
     try {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/requests`);
@@ -14,22 +18,67 @@ const fetchRequests = async () => {
     }
 };
 
-const updateStatus = async (requestId, newStatus) => {
+const fetchReservations = async (requestId) => {
     try {
-        const request = requests.value.find(r => r.request_id === requestId);
-        if (!request) return;
-        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/requests/${requestId}`, {
-            information: request.information, 
-            status: newStatus 
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/request/${requestId}`);
+        reservations.value = response.data;
+    } catch (error) {
+        console.error("Failed to fetch reservations:", error);
+    }
+}
+
+const openModal = async (request) => {
+    selectedRequest.value = { ...request };
+    await fetchReservations(request.request_id);
+    isModalOpen.value = true;
+};
+
+const closeModal = () => {
+    isModalOpen.value = false;
+    selectedRequest.value = null;
+    reservations.value = [];
+};
+
+const updateStatus = async () => {
+    try {
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/requests/${selectedRequest.value.request_id}`, {
+            information: selectedRequest.value.information,
+            status: selectedRequest.value.status
         });
 
-        request.status = newStatus;
+        const index = requests.value.findIndex(r => r.request_id === selectedRequest.value.request_id);
+        if (index !== -1) {
+            requests.value[index] = { ...selectedRequest.value };
+        }
+
         alert("Status veiksmīgi nomainīts!");
+        closeModal();
     } catch (error) {
         console.error("Failed to update status:", error);
         alert("Neizdevās nomainīt statusu.");
     }
 };
+
+const uniqueTimeRanges = computed(() => { // prevents duplicate times
+    const times = new Set();
+    
+    reservations.value.forEach(reservation => {
+        const timeRange = `${new Date(reservation.from_time).toLocaleString()} - ${new Date(reservation.to_time).toLocaleString()}`;
+        times.add(timeRange);
+    });
+
+    return [...times];
+});
+
+const uniqueComputers = computed(() => { // prevents duplicate computers
+    const computers = new Set();
+    
+    reservations.value.forEach(reservation => {
+        computers.add(reservation.computer_name);
+    });
+
+    return [...computers];
+});
 
 const filteredRequests = computed(() => {
     if (selectedStatus.value === "all") {
@@ -69,18 +118,42 @@ onMounted(fetchRequests);
                     <td>{{ request.information }}</td>
                     <td>{{ new Date(request.created_at).toLocaleString() }}</td>
                     <td>
-                        <select v-model="request.status">
-                            <option v-for="status in statuses.slice(1)" :key="status" :value="status">
-                                {{ status }}
-                            </option>
-                        </select>
+                        {{ request.status }}
                     </td>
                     <td>
-                        <button @click="updateStatus(request.request_id, request.status)">Saglabāt</button>
+                        <button @click="openModal(request)">Rediģēt</button>
                     </td>
                 </tr>
             </tbody>
         </table>
+    </div>
+
+    <div v-if="isModalOpen" class="modal">
+        <div class="modal-content">
+            <h2>Rediģēt rezervāciju</h2>
+            <p><strong>E-pasts:</strong> {{ selectedRequest.email }}</p>
+            <p><strong>Izveidots:</strong> {{ new Date(selectedRequest.created_at).toLocaleString() }}</p>
+            <p><strong>Informācija:</strong> {{ selectedRequest.information }}</p>
+            <p><strong>Rezervācijas laiki:</strong></p>
+            <ul>
+                <li v-for="time in uniqueTimeRanges" :key="time">{{ time }}</li>
+            </ul>
+            <p><strong>Izvēlētie datori:</strong></p>
+            <ul>
+                <li v-for="computer in uniqueComputers" :key="computer">{{ computer }}</li>
+            </ul>
+            <label for="status">Statuss:</label>
+            <select id="status" v-model="selectedRequest.status">
+                <option v-for="status in statuses.slice(1)" :key="status" :value="status">
+                    {{ status }}
+                </option>
+            </select>
+            
+            <div class="modal-actions">
+                <button @click="updateStatus">Saglabāt</button>
+                <button @click="closeModal">Aizvērt</button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -113,5 +186,30 @@ button {
     border: none;
     padding: 5px 10px;
     cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    min-width: 300px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
 }
 </style>

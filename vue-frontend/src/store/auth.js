@@ -3,7 +3,7 @@ import { loginWithGoogle, logout as firebaseLogout } from "../firebase";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: null,
+    user: null, // maybe not even necessary
     isAllowed: false,
     roles: [],
     currentRole: "",

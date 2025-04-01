@@ -20,7 +20,6 @@ async function getReservations() {
         "#85E3FF", "#B9FBC0", "#AFCBFF",  "#FFE7A0",
         "#FFCBCB","#B5EAD7","#E2F0CB", "#F3B0C3"
       ];        
-    // console.log(getRequestStatusByRequestId(rows[0].request_id));
     return rows.map(row => ({
         name: `\n${row.name}`,
         computer_id: row.computer_id,
@@ -37,6 +36,16 @@ async function getReservationById(reservationId) {
     return rows[0] || null;
 }
 
+async function getReservationsByRequestId(requestId) {
+    const [rows] = await pool.query(`
+        SELECT r.reservation_id, r.computer_id, c.name as computer_name, r.from_time, r.to_time
+        FROM reservations r
+        LEFT JOIN computers c ON r.computer_id = c.computer_id
+        WHERE r.request_id = ?
+    `, [requestId]);
+    return rows;
+}
+
 async function updateReservation(reservationId, { from_time, to_time }) {
     await pool.query(
         `UPDATE reservations SET from_time = ?, to_time = ? WHERE reservation_id = ?`,
@@ -51,6 +60,7 @@ module.exports = {
     createReservation,
     getReservations,
     getReservationById,
+    getReservationsByRequestId,
     updateReservation,
     deleteReservation
 };

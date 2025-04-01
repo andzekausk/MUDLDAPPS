@@ -2,6 +2,7 @@ const express = require("express");
 const { 
   getReservations,
   getReservationById,
+  getReservationsByRequestId,
   createReservation,
   updateReservation,
   deleteReservation } = require("../services/reservationService");
@@ -28,6 +29,19 @@ router.get("/reservations/:id", async (req, res) => {
     } catch (error) {
         console.error("Error fetching reservation:", error);
         res.status(500).json({ message: "Error fetching reservation" });
+    }
+});
+
+router.get("/reservations/request/:id", async (req, res) => {
+    try {
+        const reservations = await getReservationsByRequestId(req.params.id);
+        if (!reservations) {
+            return res.status(404).json({ message: "Reservations not found" });
+        }
+        res.json(reservations);
+    } catch (error) {
+        console.error("Error fetching reservations:", error);
+        res.status(500).json({ message: "Error fetching reservations" });
     }
 });
 
