@@ -4,7 +4,7 @@ import { loginWithGoogle, logout as firebaseLogout } from "../firebase";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null, // maybe not even necessary
-    isAllowed: false,
+    // isAllowed: false,
     // isActive: false,
     roles: [],
     currentRole: "",
@@ -68,7 +68,7 @@ export const useAuthStore = defineStore("auth", {
     
     async logout() {
       this.user = null;
-      this.isAllowed = false;
+      // this.isAllowed = false;
       this.roles = [];
       this.currentRole = "";
       this.token = null;
@@ -84,16 +84,10 @@ export const useAuthStore = defineStore("auth", {
     },
     setUserSession(data) {
       this.user = { email: data.email };
-      console.log(this.user);
-      // this.roles = data.roles;
-      this.roles = Array.isArray(data.roles) ? data.roles : [];
-      console.log(this.roles);
-      this.isAllowed = data.isAllowed;
-      console.log(this.isAllowed);
+      this.roles = data.roles;
+      // this.isAllowed = data.isAllowed;
       this.currentRole = data.roles.length == 0 ? "" : data.roles[data.roles.length-1];
-      console.log(this.currentRole);
       this.token = data.token;
-      console.log(this.token);
       localStorage.setItem("token", data.token);
     },
     async checkAuth() {
