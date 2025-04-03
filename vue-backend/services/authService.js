@@ -52,9 +52,9 @@ async function loginWithGoogle(idToken) {
         const allowedDomains = await getAllowedDomains();
         const isAllowed = allowedDomains.includes(email.split("@")[1]);
         // const isActive = decodedToken.is_active;
-        // if (!isAllowed) {
-        //     return { error: "Email domain not allowed", status: 403, isAllowed: false };
-        // }
+        if (!isAllowed) {
+            return { error: "Email domain not allowed", status: 403, isAllowed: false, isActive: false };
+        }
 
         const [existingGoogleUsers] = await pool.query(
             "SELECT user_id FROM users WHERE email = ? AND user_type = 'google'", 
