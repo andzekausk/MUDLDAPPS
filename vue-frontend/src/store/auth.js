@@ -5,6 +5,7 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null, // maybe not even necessary
     isAllowed: false,
+    // isActive: false,
     roles: [],
     currentRole: "",
     token: localStorage.getItem("token") || null,
@@ -22,9 +23,13 @@ export const useAuthStore = defineStore("auth", {
           });
   
           const data = await response.json();
-          console.log("is active: ",data.isAllowed);
+
           if(!data.isAllowed){
-            alert("Neatļauts domēns vai deaktivizēts lietotājs!");
+            alert("Neatļauts domēns!");
+            return;
+          }
+          if(!data.isActive){
+            alert("Deaktivizēts lietotājs!");
             return;
           }
 
@@ -47,8 +52,12 @@ export const useAuthStore = defineStore("auth", {
         if (!response.ok) throw new Error("Invalid username or password");
 
         const data = await response.json();
-        if(!data.isAllowed){
-          alert("Neatļauts domēns vai deaktivizēts lietotājs!");
+        // if(!data.isAllowed){
+        //   alert("Neatļauts domēns vai deaktivizēts lietotājs!");
+        //   return;
+        // }
+        if(!data.isActive){
+          alert("Deaktivizēts lietotājs!");
           return;
         }
         this.setUserSession(data);
@@ -76,7 +85,8 @@ export const useAuthStore = defineStore("auth", {
     setUserSession(data) {
       this.user = { email: data.email };
       console.log(this.user);
-      this.roles = data.roles;
+      // this.roles = data.roles;
+      this.roles = Array.isArray(data.roles) ? data.roles : [];
       console.log(this.roles);
       this.isAllowed = data.isAllowed;
       console.log(this.isAllowed);
