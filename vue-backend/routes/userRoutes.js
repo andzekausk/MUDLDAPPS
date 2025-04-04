@@ -2,7 +2,6 @@ const express = require("express");
 const {
   getUsers,
   getUserById,
-  getGoogleUserByEmail,
   createUser,
   updateUser,
   deleteUser
@@ -23,19 +22,6 @@ router.get("/users", async (req, res) => {
 router.get("/users/:id", async (req, res) => {
   try {
     const user = await getUserById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.json(user);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ message: "Error fetching user" });
-  }
-});
-
-router.get("/users/email/:email", async (req, res) => {
-  try {
-    const user = await getGoogleUserByEmail(req.params.email);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

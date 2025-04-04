@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import api from "../services/api";
 
 const computers = ref([]);
 const showModal = ref(false);
@@ -23,7 +24,7 @@ const editedComputer = ref({
 
 const fetchComputers = async () => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/computers`);
+        const response = await api.get("/computers");
         computers.value = response.data.computers; 
     } catch (error) {
         console.error("Failed to fetch computers:", error);

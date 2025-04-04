@@ -28,6 +28,7 @@ import axios from "axios";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import api from "../services/api";
 
 export default {
   components: {
@@ -52,7 +53,7 @@ export default {
   methods: {
     async fetchComputers() {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/computers`);
+        const response = await api.get("/computers");
         this.computers = response.data.computers; 
     } catch (error) {
         console.error("Failed to fetch computers:", error);

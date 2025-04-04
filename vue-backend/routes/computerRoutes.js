@@ -4,10 +4,10 @@ const {
   addComputer, 
   deleteComputer, 
   updateComputer } = require("../services/computerService");
-
 const router = express.Router();
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/computers", async (req, res) => {
+router.get("/computers", authenticateUser, async (req, res) => {
   try {
     const computers = await getComputers();
     res.json({ computers });
@@ -17,7 +17,7 @@ router.get("/computers", async (req, res) => {
   }
 });
 
-router.post("/computers", async (req, res) => {
+router.post("/computers", authenticateUser, authorizeRole(["administrators", "pārvaldnieks"]), async (req, res) => {
   try {
     const { name, description, row, column } = req.body;
     if (!name || !row || !column) {
@@ -32,7 +32,7 @@ router.post("/computers", async (req, res) => {
   }
 });
 
-router.delete("/computers/:id", async (req, res) => {
+router.delete("/computers/:id", authenticateUser, authorizeRole(["administrators", "pārvaldnieks"]), async (req, res) => {
   try {
       const { id } = req.params;
       await deleteComputer(id);
@@ -43,7 +43,7 @@ router.delete("/computers/:id", async (req, res) => {
   }
 });
 
-router.put("/computers/:id", async (req, res) => {
+router.put("/computers/:id", authenticateUser, authorizeRole(["administrators", "pārvaldnieks"]), async (req, res) => {
   try {
       const { id } = req.params;
       const { name, description, row, column } = req.body;

@@ -39,8 +39,7 @@ const fetchUsers = async () => {
     const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users`);
     users.value = response.data.map(user => ({
       ...user,
-      // roles: user.roles,
-      roles: user.roles ? user.roles.split(',') : [],
+      roles: user.roles ? user.roles : [],
       is_active: !!user.is_active, // ensures it's a boolean
     }));
   } catch (error) {

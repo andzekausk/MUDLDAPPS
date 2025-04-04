@@ -36,15 +36,6 @@ async function getUserById(userId) {
     return rows[0] || null;
 }
 
-async function getGoogleUserByEmail(email) {
-    const [rows] = await pool.query(`
-        SELECT * FROM users 
-        WHERE user_type = 'google'
-        AND email = ?
-    `, [email]);
-    return rows[0] || null;
-}
-
 async function updateUser(userId, { phone_number, is_active }) {
     await pool.query(
         `UPDATE users SET phone_number = ?, is_active = ? WHERE user_id = ?`,
@@ -60,7 +51,6 @@ module.exports = {
     createUser,
     getUsers,
     getUserById,
-    getGoogleUserByEmail,
     updateUser,
     deleteUser
 };
