@@ -12,7 +12,7 @@ async function getUserRoles(username) {
         JOIN user_roles ON users.user_id = user_roles.user_id
         JOIN roles ON user_roles.role_id = roles.role_id
         WHERE local_users.username = ?
-        ORDER BY roles.role_id;
+        ORDER BY roles.role_id DESC;
     `, [username]);
 
     return rows.map(row => row.name);
@@ -26,7 +26,7 @@ async function getGoogleUserRoles(email) {
         JOIN roles ON user_roles.role_id = roles.role_id
         WHERE users.user_type = "google"
         AND users.email = ?
-        ORDER BY roles.role_id;
+        ORDER BY roles.role_id DESC;
     `, [email]);
 
     return rows.map(row => row.name);
@@ -51,7 +51,6 @@ async function loginWithGoogle(idToken) {
         const email = decodedToken.email;
         const allowedDomains = await getAllowedDomains();
         const isAllowed = allowedDomains.includes(email.split("@")[1]);
-        // const isActive = decodedToken.is_active;
         if (!isAllowed) {
             return { error: "Email domain not allowed", status: 403, isAllowed: false, isActive: false };
         }
@@ -68,22 +67,7 @@ async function loginWithGoogle(idToken) {
         const [userRows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
         const user = userRows[0];
 
-        // if user is deactivated don't allow login
-        // if (user.is_active == 0){
-        //     return { email, isAllowed: false};
-        // }
-        // console.log(user.is_active);
-        // if (user.is_active === 0) {
-        //     return { error: "User is deactivated", status: 403, isAllowed: true, isActive: false };
-        // }
-
-        // const roles = await getGoogleUserRoles(email);
-        const roles = (await getGoogleUserRoles(email)) || [];
-
-        if (roles.length === 0) {
-            const token = generateToken(user);
-            return { token, email, roles: [], isAllowed, isActive: user.is_active };
-        }
+        const roles = await getGoogleUserRoles(email);
 
         user.roles = roles;
         const token = generateToken(user);
@@ -108,10 +92,7 @@ async function loginWithUsernamePassword(username, password) {
         }
 
         const user = rows[0];
-        // if user is deactivated don't allow login
-        // if (user.is_active == 0){
-        //     isAllowed = false;
-        // }
+
         const passwordMatch = bcrypt.compareSync(password, user.password_hash);
         if (!passwordMatch) {
             return { error: "Invalid credentials", status: 401 };
@@ -143,6 +124,7 @@ async function verifyToken(token) {
             FROM user_roles
             JOIN roles ON user_roles.role_id = roles.role_id
             WHERE user_roles.user_id = ?
+            ORDER BY roles.role_id DESC;
         `, [decoded.user_id]);
 
         const roles = rows.map(row => row.name);
