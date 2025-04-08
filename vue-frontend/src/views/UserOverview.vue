@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
 import bcrypt from 'bcryptjs';
 import api from "../services/api";
 
@@ -37,7 +36,6 @@ const closeCreateModal = () => {
 
 const fetchUsers = async () => {
   try {
-    // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users`);
     const response = await api.get(`/users`);
     users.value = response.data.map(user => ({
       ...user,
@@ -51,7 +49,6 @@ const fetchUsers = async () => {
 
 const fetchRoles = async () => {
   try {
-    // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/roles`);
     const response = await api.get(`/roles`);
     roles.value = response.data;
   } catch (error) {
@@ -60,12 +57,10 @@ const fetchRoles = async () => {
 };
 
 async function addRole(userId, roleId) {
-  // await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/assign`, { userId, roleId });
   await api.post(`/user_roles/assign`, { userId, roleId });
 }
 
 async function removeRole(userId, roleId) {
-  // await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/remove`, { data: { userId, roleId } });
   await api.delete(`/user_roles/remove`, { data: { userId, roleId } });
 }
 
@@ -92,7 +87,6 @@ const saveUserRoles = async () => {
       if (roleId) 
         await removeRole(selectedUser.value.user_id, roleId);
     }
-    // await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/users/${selectedUser.value.user_id}`, {
     await api.put(`/users/${selectedUser.value.user_id}`, {
       phone_number: selectedUser.value.phone_number,
       is_active: selectedUser.value.is_active
@@ -109,7 +103,6 @@ const saveUserRoles = async () => {
 const saveNewUser = async () => {
   try {
     let userId;
-    // const userResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/users`, {
     const userResponse = await api.post(`/users`, {
       email: newUser.value.email,
       user_type: newUser.value.user_type,
@@ -122,7 +115,6 @@ const saveNewUser = async () => {
 
       if (newUser.value.user_type === 'Local') {
         const hashedPassword = await bcrypt.hash(newUser.value.password, 10);
-        // await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/local_users`, {
         await api.post(`/local_users`, {
           user_id: userId,
           username: newUser.value.username,

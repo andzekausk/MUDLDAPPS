@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-// import axios from "axios";
 
 const requests = ref([]);
 const statuses = ["all", "pending", "approved", "denied"];
@@ -12,7 +11,6 @@ import api from "../services/api";
 
 const fetchRequests = async () => {
     try {
-        // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/requests`);
         const response = await api.get(`/requests`);
         requests.value = response.data;
     } catch (error) {
@@ -22,7 +20,6 @@ const fetchRequests = async () => {
 
 const fetchReservations = async (requestId) => {
     try {
-        // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/request/${requestId}`);
         const response = await api.get(`/reservations/request/${requestId}`);
         reservations.value = response.data;
     } catch (error) {
@@ -44,10 +41,6 @@ const closeModal = () => {
 
 const updateStatus = async () => {
     try {
-        // await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/requests/${selectedRequest.value.request_id}`, {
-        //     information: selectedRequest.value.information,
-        //     status: selectedRequest.value.status
-        // });
         await api.put(`/requests/${selectedRequest.value.request_id}`, {
             information: selectedRequest.value.information,
             status: selectedRequest.value.status

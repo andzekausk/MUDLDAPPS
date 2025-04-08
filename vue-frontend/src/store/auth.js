@@ -75,6 +75,11 @@ export const useAuthStore = defineStore("auth", {
         this.currentRole = newRole;
       }
     },
+
+    setRoles(newRoles) {
+      this.roles = newRoles;
+    },
+    
     setUserSession(data) {
       // this.user = { email: data.email };
       this.roles = data.roles;
