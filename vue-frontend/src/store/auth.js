@@ -3,7 +3,7 @@ import { loginWithGoogle, logout as firebaseLogout } from "../firebase";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: null, // maybe not even necessary
+    // user: null, // maybe not even necessary
     roles: [],
     currentRole: "",
     token: localStorage.getItem("token") || null,
@@ -61,7 +61,7 @@ export const useAuthStore = defineStore("auth", {
     },
     
     async logout() {
-      this.user = null;
+      // this.user = null;
       this.roles = [];
       this.currentRole = "";
       this.token = null;
@@ -76,7 +76,7 @@ export const useAuthStore = defineStore("auth", {
       }
     },
     setUserSession(data) {
-      this.user = { email: data.email };
+      // this.user = { email: data.email };
       this.roles = data.roles;
       this.currentRole = data.roles.length == 0 ? "" : data.roles[0];
       this.token = data.token;

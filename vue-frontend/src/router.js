@@ -30,13 +30,16 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
-    if (authStore.token && !authStore.user) {
+    // if (authStore.token && !authStore.user) {
+    //   await authStore.checkAuth();
+    // }
+    if (authStore.token && (!authStore.roles || authStore.roles.length === 0)) {
       await authStore.checkAuth();
     }
-    if (to.meta.requiresAuth && !authStore.user) {
+    if (to.meta.requiresAuth && !authStore.token) {
       next('/login');
     }
-    else if (authStore.user && (!authStore.roles || authStore.roles.length === 0) && to.path !== "/register") { // to.path to prevent infinite loop
+    else if (authStore.token && (!authStore.roles || authStore.roles.length === 0) && to.path !== "/register") { // to.path to prevent infinite loop
       next("/register");
     }
     else {
