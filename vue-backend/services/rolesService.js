@@ -18,6 +18,13 @@ async function getRoleById(roleId) {
     return rows[0];
 }
 
+async function getRoleIdByName(roleName) {
+    const [rows] = await pool.execute(`
+        SELECT role_id FROM roles WHERE name = ?
+    `, [roleName]);
+    return rows[0]?.role_id;
+}
+
 async function createRole(name) {
     const [result] = await pool.execute(`
         INSERT INTO roles (name) 
@@ -44,6 +51,7 @@ async function deleteRole(roleId) {
 module.exports = {
     getAllRoles,
     getRoleById,
+    getRoleIdByName,
     createRole,
     updateRole,
     deleteRole

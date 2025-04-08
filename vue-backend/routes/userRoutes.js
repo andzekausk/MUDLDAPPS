@@ -4,11 +4,13 @@ const {
   getUserById,
   createUser,
   updateUser,
+  updateUserPhoneNumber,
   deleteUser
 } = require("../services/userService");
 
 const router = express.Router();
 const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
+const jwt = require('jsonwebtoken');
 
 router.get("/users", authenticateUser, async (req, res) => {
   try {
@@ -33,7 +35,7 @@ router.get("/users/:id", authenticateUser, async (req, res) => {
   }
 });
 
-router.post("/users", async (req, res) => {
+router.post("/users", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
   try {
     const { user_id, user_type, email, phone_number, is_active } = req.body;
     const newUser = await createUser({ user_id, user_type, email, phone_number, is_active });
@@ -44,7 +46,7 @@ router.post("/users", async (req, res) => {
   }
 });
 
-router.put("/users/:id", async (req, res) => {
+router.put("/users/:id", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
   try {
     const { phone_number, is_active } = req.body;
     await updateUser(req.params.id, { phone_number, is_active });
@@ -55,8 +57,20 @@ router.put("/users/:id", async (req, res) => {
   }
 });
 
+router.put("/user-assign-phone-number", authenticateUser, async (req, res) => {
+  try {
+    const {phone_number} = req.body;
+    const userId = jwt.verify(req.user.token, process.env.JWT_SECRET).user_id;
+    await updateUserPhoneNumber(userId, phone_number);
+    res.json({ message: "User phone number updated successfully" });
+  } catch (error) {
+    console.error("Error updating user's phone number:", error);
+    res.status(500).json({ message: "Error updating user's phone number" });
+  }
+});
 
-router.delete("/users/:id", async (req, res) => {
+
+router.delete("/users/:id", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
   try {
     await deleteUser(req.params.id);
     res.json({ message: "User deleted successfully" });

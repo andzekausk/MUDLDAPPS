@@ -5,7 +5,7 @@ const {
     removeRole,
     getAllUserRoles,
 } = require("../services/userRolesService");
-
+const { getRoleIdByName } = require("../services/rolesService");
 const router = express.Router();
 const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
@@ -19,7 +19,7 @@ router.get("/user_roles/:userId", authenticateUser, async (req, res) => {
     }
 });
 
-router.post('/user_roles/assign', authenticateUser, async (req, res) => { // probably needs authorizeRole
+router.post('/user_roles/assign', authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
     try {
         const { userId, roleId } = req.body;
         await assignRole(userId, roleId);
@@ -27,6 +27,18 @@ router.post('/user_roles/assign', authenticateUser, async (req, res) => { // pro
     } catch (error) {
         console.error("Error assigning role:", error);
         res.status(500).json({ message: "Error assigning role" });
+    }
+});
+
+router.post('/user_roles/assign-initial', authenticateUser, async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const roleId = await getRoleIdByName("lietotājs");
+        await assignRole(userId, roleId);
+        res.status(201).json({ message: "Initial role assigned successfully" });
+    } catch (error) {
+        console.error("Error assigning initial role:", error);
+        res.status(500).json({ message: "Error assigning initial role" });
     }
 });
   

@@ -43,6 +43,13 @@ async function updateUser(userId, { phone_number, is_active }) {
     );
 }
 
+async function updateUserPhoneNumber(userId, phone_number) {
+    await pool.query(
+        `UPDATE users SET phone_number = ? WHERE user_id = ?`,
+        [phone_number, userId]
+    );
+}
+
 async function deleteUser(userId) {
     await pool.query(`DELETE FROM users WHERE user_id = ?`, [userId]);
 }
@@ -52,5 +59,6 @@ module.exports = {
     getUsers,
     getUserById,
     updateUser,
+    updateUserPhoneNumber,
     deleteUser
 };

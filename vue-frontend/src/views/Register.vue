@@ -38,16 +38,20 @@ const submitRegistration = async () => {
     return;
   }
   try {
-    await api.put(`/users/${user.value.user_id}`, {
+    // await api.put(`/users/${user.value.user_id}`, {
+    //   phone_number: phone_number.value,
+    //   is_active: true,
+    // });
+    await api.put(`/user-assign-phone-number`, {
       phone_number: phone_number.value,
-      is_active: true,
     });
     // await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/users/${user.value.user_id}`, {
     //   phone_number: phone_number.value,
     //   is_active: true,
     // });
     const roleId = 1;
-    await api.post(`/user_roles/assign`, { userId: user.value.user_id, roleId });
+    await api.post(`/user_roles/assign-initial`, { userId: user.value.user_id});
+    // await api.post(`/user_roles/assign`, { userId: user.value.user_id, roleId });
     // await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/assign`, { userId: user.value.user_id, roleId });
     
     const rolesResponse = await api.get(`/user_roles/${user.value.user_id}`);
