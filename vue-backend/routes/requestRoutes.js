@@ -7,8 +7,9 @@ const {
   deleteRequest } = require("../services/requestService");
 
 const router = express.Router();
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/requests", async (req, res) => {
+router.get("/requests", authenticateUser, async (req, res) => {
     try {
       const requests = await getRequests();
       res.json( requests );
@@ -18,7 +19,7 @@ router.get("/requests", async (req, res) => {
     }
   });
 
-router.get("/requests/:id", async (req, res) => {
+router.get("/requests/:id", authenticateUser, async (req, res) => {
   try {
       const request = await getRequestById(req.params.id);
       if (!request) {
@@ -31,7 +32,7 @@ router.get("/requests/:id", async (req, res) => {
   }
 });
 
-router.post("/requests", async (req, res) => {
+router.post("/requests", authenticateUser, authorizeRole(["lietotājs"]), async (req, res) => {
   try {
       const { user_id, information, status } = req.body;
       const newRequest = await createRequest({ user_id, information, status });
@@ -42,7 +43,7 @@ router.post("/requests", async (req, res) => {
   }
 });
 
-router.put("/requests/:id", async (req, res) => {
+router.put("/requests/:id", authenticateUser, authorizeRole(["lietotājs", "pārvaldnieks"]), async (req, res) => {
   try {
       const { information, status } = req.body;
       await updateRequest(req.params.id, { information, status });
@@ -53,7 +54,7 @@ router.put("/requests/:id", async (req, res) => {
   }
 });
 
-router.delete("/requests/:id", async (req, res) => {
+router.delete("/requests/:id", authenticateUser, authorizeRole(["lietotājs", "pārvaldnieks"]), async (req, res) => {
   try {
       await deleteRequest(req.params.id);
       res.json({ message: "Request deleted successfully" });

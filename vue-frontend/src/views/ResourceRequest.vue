@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "axios";
+// import axios from "axios";
 import { useAuthStore } from "../store/auth";
 import { jwtDecode } from "jwt-decode";
+import api from "../services/api";
 
 const authStore = useAuthStore();
 const computers = ref([]);
@@ -12,7 +13,8 @@ const timeSlots = ref([{fromTime: "", toTime: ""}]);
 
 const fetchComputers = async () => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/computers`);
+        // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/computers`);
+        const response = await api.get(`/computers`);
         computers.value = response.data.computers;
     } catch (error) {
         console.error("Failed to fetch computers:", error);
@@ -51,18 +53,29 @@ const submitRequest = async () => {
     }
     try {
         // create request
-        const requestResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/requests`, {
+        const requestResponse = await api.post(`/requests`, {
             user_id: userId,
             information: requestInfo.value,
             status: "pending"
         });
+        // const requestResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/requests`, {
+        //     user_id: userId,
+        //     information: requestInfo.value,
+        //     status: "pending"
+        // });
         
         const requestId = requestResponse.data.request_id;
         
         // create reservation for each computer
         for (const computerId of selectedComputers.value) {
             for (const { fromTime, toTime } of timeSlots.value) {
-                await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
+                // await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
+                //     computer_id: computerId,
+                //     request_id: requestId,
+                //     from_time: fromTime,
+                //     to_time: toTime
+                // });
+                await api.post(`/reservations`, {
                     computer_id: computerId,
                     request_id: requestId,
                     from_time: fromTime,

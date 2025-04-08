@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import axios from "axios";
+// import axios from "axios";
 
 const requests = ref([]);
 const statuses = ["all", "pending", "approved", "denied"];
@@ -8,10 +8,12 @@ const selectedStatus = ref("pending");
 const isModalOpen = ref(false);
 const selectedRequest = ref(null);
 const reservations = ref([]);
+import api from "../services/api";
 
 const fetchRequests = async () => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/requests`);
+        // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/requests`);
+        const response = await api.get(`/requests`);
         requests.value = response.data;
     } catch (error) {
         console.error("Failed to fetch requests:", error);
@@ -20,7 +22,8 @@ const fetchRequests = async () => {
 
 const fetchReservations = async (requestId) => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/request/${requestId}`);
+        // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reservations/request/${requestId}`);
+        const response = await api.get(`/reservations/request/${requestId}`);
         reservations.value = response.data;
     } catch (error) {
         console.error("Failed to fetch reservations:", error);
@@ -41,7 +44,11 @@ const closeModal = () => {
 
 const updateStatus = async () => {
     try {
-        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/requests/${selectedRequest.value.request_id}`, {
+        // await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/requests/${selectedRequest.value.request_id}`, {
+        //     information: selectedRequest.value.information,
+        //     status: selectedRequest.value.status
+        // });
+        await api.put(`/requests/${selectedRequest.value.request_id}`, {
             information: selectedRequest.value.information,
             status: selectedRequest.value.status
         });

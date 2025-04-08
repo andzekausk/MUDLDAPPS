@@ -8,8 +8,9 @@ const {
 } = require("../services/userService");
 
 const router = express.Router();
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/users", async (req, res) => {
+router.get("/users", authenticateUser, async (req, res) => {
   try {
     const users = await getUsers();
     res.json(users);
@@ -19,7 +20,7 @@ router.get("/users", async (req, res) => {
   }
 });
 
-router.get("/users/:id", async (req, res) => {
+router.get("/users/:id", authenticateUser, async (req, res) => {
   try {
     const user = await getUserById(req.params.id);
     if (!user) {

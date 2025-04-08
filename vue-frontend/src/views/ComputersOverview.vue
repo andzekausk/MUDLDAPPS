@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "axios";
+// import axios from "axios";
 import api from "../services/api";
 
 const computers = ref([]);
@@ -33,7 +33,8 @@ const fetchComputers = async () => {
 
 const addComputer = async () => {
   try {
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/computers`, newComputer.value);
+    // await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/computers`, newComputer.value);
+    await api.post("/computers", newComputer.value);
     showModal.value = false;
     fetchComputers();
     newComputer.value = { name: "", description: "", row: "", column: "" }; 
@@ -44,7 +45,8 @@ const addComputer = async () => {
 
 const deleteComputer = async (computerId) => {
     try {
-        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/computers/${computerId}`);
+        // await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/computers/${computerId}`);
+        await api.delete(`/computers/${computerId}`);
         computers.value = computers.value.filter(c => c.computer_id !== computerId);
         alert("Dators veiksmīgi izdzēsts!");
     } catch (error) {
@@ -73,10 +75,11 @@ const editComputer = (computer) => {
 
 const updateComputer = async () => {
   try {
-    await axios.put(
-      `${import.meta.env.VITE_API_BASE_URL}/api/computers/${editedComputer.value.computer_id}`,
-      editedComputer.value
-    );
+    // await axios.put(
+    //   `${import.meta.env.VITE_API_BASE_URL}/api/computers/${editedComputer.value.computer_id}`,
+    //   editedComputer.value
+    // );
+    await api.put(`/computers/${editedComputer.value.computer_id}`, editedComputer.value);
     showEditModal.value = false;
     fetchComputers();
   } catch (error) {

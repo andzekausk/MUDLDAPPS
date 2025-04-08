@@ -7,8 +7,9 @@ const {
 } = require("../services/userRolesService");
 
 const router = express.Router();
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/user_roles/:userId", async (req, res) => {
+router.get("/user_roles/:userId", authenticateUser, async (req, res) => {
     try {
         const roles = await getUserRoles(req.params.userId);
         res.json(roles);
@@ -18,7 +19,7 @@ router.get("/user_roles/:userId", async (req, res) => {
     }
 });
 
-router.post('/user_roles/assign', async (req, res) => {
+router.post('/user_roles/assign', authenticateUser, async (req, res) => { // probably needs authorizeRole
     try {
         const { userId, roleId } = req.body;
         await assignRole(userId, roleId);
@@ -29,7 +30,7 @@ router.post('/user_roles/assign', async (req, res) => {
     }
 });
   
-router.delete('/user_roles/remove', async (req, res) => {
+router.delete('/user_roles/remove', authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
     try {
         const { userId, roleId } = req.body;
         await removeRole(userId, roleId);
@@ -40,7 +41,7 @@ router.delete('/user_roles/remove', async (req, res) => {
     }
 });
   
-router.get('/user_roles', async (req, res) => {
+router.get('/user_roles', authenticateUser, async (req, res) => {
     try {
         const userRoles = await getAllUserRoles();
         res.json(userRoles);

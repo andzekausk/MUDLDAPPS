@@ -8,8 +8,9 @@ const {
 } = require("../services/rolesService");
 
 const router = express.Router();
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/roles", async (req, res) => {
+router.get("/roles", authenticateUser, async (req, res) => {
     try {
         const roles = await getAllRoles();
         res.json(roles);
@@ -19,7 +20,7 @@ router.get("/roles", async (req, res) => {
     }
 });
 
-router.get("/roles/:roleId", async (req, res) => {
+router.get("/roles/:roleId", authenticateUser, async (req, res) => {
     try {
         const role = await getRoleById(req.params.roleId);
         if (role) {
@@ -33,7 +34,7 @@ router.get("/roles/:roleId", async (req, res) => {
     }
 });
 
-router.post("/roles", async (req, res) => {
+router.post("/roles", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
     try {
         const { name } = req.body;
         const newRoleId = await createRole(name);
@@ -44,7 +45,7 @@ router.post("/roles", async (req, res) => {
     }
 });
 
-router.put("/roles/:roleId", async (req, res) => {
+router.put("/roles/:roleId", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
     try {
         const { name } = req.body;
         await updateRole(req.params.roleId, name);
@@ -55,7 +56,7 @@ router.put("/roles/:roleId", async (req, res) => {
     }
 });
 
-router.delete("/roles/:roleId", async (req, res) => {
+router.delete("/roles/:roleId", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
     try {
         await deleteRole(req.params.roleId);
         res.json({ message: "Role deleted successfully" });

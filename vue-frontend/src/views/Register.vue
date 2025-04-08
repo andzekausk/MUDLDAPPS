@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
+// import axios from "axios";
 import { useAuthStore } from "../store/auth";
 import { jwtDecode } from "jwt-decode";
+import api from "../services/api";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -18,7 +19,8 @@ const fetchUser = async () => {
     const userId = jwtDecode(authStore.token)?.user_id;
     if (!userId) throw new Error("User ID not found");
 
-    const userResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/${userId}`);
+    const userResponse = await api.get(`/users/${userId}`);
+    // const userResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/${userId}`);
     user.value = userResponse.data;
   } catch (error) {
     console.error("Failed to fetch user:", error);
@@ -36,14 +38,20 @@ const submitRegistration = async () => {
     return;
   }
   try {
-    await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/users/${user.value.user_id}`, {
+    await api.put(`/users/${user.value.user_id}`, {
       phone_number: phone_number.value,
       is_active: true,
     });
+    // await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/users/${user.value.user_id}`, {
+    //   phone_number: phone_number.value,
+    //   is_active: true,
+    // });
     const roleId = 1;
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/assign`, { userId: user.value.user_id, roleId });
+    await api.post(`/user_roles/assign`, { userId: user.value.user_id, roleId });
+    // await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/assign`, { userId: user.value.user_id, roleId });
     
-    const rolesResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/${user.value.user_id}`);
+    const rolesResponse = await api.get(`/user_roles/${user.value.user_id}`);
+    // const rolesResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/user_roles/${user.value.user_id}`);
     authStore.roles = rolesResponse.data;
     router.push("/");
   } catch (error) {

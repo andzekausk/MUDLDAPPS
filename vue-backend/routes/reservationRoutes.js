@@ -8,8 +8,9 @@ const {
   deleteReservation } = require("../services/reservationService");
 
 const router = express.Router();
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/reservations", async (req, res) => {
+router.get("/reservations", authenticateUser, async (req, res) => {
     try {
       const reservations = await getReservations();
       res.json( reservations );
@@ -19,7 +20,7 @@ router.get("/reservations", async (req, res) => {
     }
   });
 
-router.get("/reservations/:id", async (req, res) => {
+router.get("/reservations/:id", authenticateUser, async (req, res) => {
     try {
         const reservation = await getReservationById(req.params.id);
         if (!reservation) {
@@ -32,7 +33,7 @@ router.get("/reservations/:id", async (req, res) => {
     }
 });
 
-router.get("/reservations/request/:id", async (req, res) => {
+router.get("/reservations/request/:id", authenticateUser, async (req, res) => {
     try {
         const reservations = await getReservationsByRequestId(req.params.id);
         if (!reservations) {
@@ -45,7 +46,7 @@ router.get("/reservations/request/:id", async (req, res) => {
     }
 });
 
-router.post("/reservations", async (req, res) => {
+router.post("/reservations", authenticateUser, authorizeRole(["pārvaldnieks"]), async (req, res) => {
     try {
         const { computer_id, request_id, from_time, to_time } = req.body;
         const newReservation = await createReservation({ computer_id, request_id, from_time, to_time });
@@ -56,7 +57,7 @@ router.post("/reservations", async (req, res) => {
     }
 });
 
-router.put("/reservations/:id", async (req, res) => {
+router.put("/reservations/:id", authenticateUser, authorizeRole(["pārvaldnieks"]), async (req, res) => {
     try {
         const { from_time, to_time } = req.body;
         await updateReservation(req.params.id, { from_time, to_time });
@@ -67,7 +68,7 @@ router.put("/reservations/:id", async (req, res) => {
     }
 });
 
-router.delete("/reservations/:id", async (req, res) => {
+router.delete("/reservations/:id", authenticateUser, authorizeRole(["pārvaldnieks"]),  async (req, res) => {
     try {
         await deleteReservation(req.params.id);
         res.json({ message: "Reservation deleted successfully" });

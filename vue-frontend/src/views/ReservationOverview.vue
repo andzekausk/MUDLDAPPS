@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import axios from "axios";
+// import axios from "axios";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -61,7 +61,8 @@ export default {
     },
     async fetchReservations() {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`);
+        // const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`);
+        const response = await api.get("/reservations");
         this.reservations = response.data;
       } catch (error) {
         console.error("Failed to fetch reservations:", error);

@@ -8,8 +8,9 @@ const {
 } = require("../services/localUserService");
 
 const router = express.Router();
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/local_users", async (req, res) => {
+router.get("/local_users", authenticateUser, async (req, res) => {
   try {
     const users = await getLocalUsers();
     res.json(users);
@@ -19,7 +20,7 @@ router.get("/local_users", async (req, res) => {
   }
 });
 
-router.get("/local_users/:id", async (req, res) => {
+router.get("/local_users/:id", authenticateUser, async (req, res) => {
   try {
     const user = await getLocalUserById(req.params.id);
     if (!user) {
@@ -32,7 +33,7 @@ router.get("/local_users/:id", async (req, res) => {
   }
 });
 
-router.post("/local_users", async (req, res) => {
+router.post("/local_users", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
   try {
     const { user_id, username, password_hash } = req.body;
     const newLocalUser = await createLocalUser({ user_id, username, password_hash });
@@ -43,7 +44,7 @@ router.post("/local_users", async (req, res) => {
   }
 });
 
-router.put("/local_users/:id", async (req, res) => {
+router.put("/local_users/:id", authenticateUser, authorizeRole(["administrators"]), async (req, res) => {
   try {
     const { username, password_hash } = req.body;
     await updateLocalUser(req.params.id, { username, password_hash });
@@ -54,7 +55,7 @@ router.put("/local_users/:id", async (req, res) => {
   }
 });
 
-router.delete("/local_users/:id", async (req, res) => {
+router.delete("/local_users/:id", authenticateUser, authorizeRole(["administrators"]),  async (req, res) => {
   try {
     await deleteLocalUser(req.params.id);
     res.json({ message: "Local user deleted successfully" });
