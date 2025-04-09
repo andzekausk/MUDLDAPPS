@@ -12,7 +12,7 @@ const router = express.Router();
 const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 const jwt = require('jsonwebtoken');
 
-router.get("/users", authenticateUser, async (req, res) => {
+router.get("/users", authenticateUser, authorizeRole(["laborants", "pārvaldnieks", "administrators"]), async (req, res) => {
   try {
     const users = await getUsers();
     res.json(users);
@@ -22,7 +22,7 @@ router.get("/users", authenticateUser, async (req, res) => {
   }
 });
 
-router.get("/users/:id", authenticateUser, async (req, res) => {
+router.get("/users/:id", authenticateUser, authorizeRole(["laborants", "pārvaldnieks", "administrators"]), async (req, res) => {
   try {
     const user = await getUserById(req.params.id);
     if (!user) {
@@ -32,6 +32,18 @@ router.get("/users/:id", authenticateUser, async (req, res) => {
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).json({ message: "Error fetching user" });
+  }
+});
+router.get("/current-user", authenticateUser, async (req, res) => {
+  try {
+    const user = await getUserById(jwt.verify(req.user.token, process.env.JWT_SECRET).user_id);
+    if (!user) {
+      return res.status(404).json({ message: "Current user not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    res.status(500).json({ message: "Error fetching current user" });
   }
 });
 

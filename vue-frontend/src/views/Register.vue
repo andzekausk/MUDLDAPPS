@@ -18,7 +18,8 @@ const fetchUser = async () => {
     const userId = jwtDecode(authStore.token)?.user_id;
     if (!userId) throw new Error("User ID not found");
 
-    const userResponse = await api.get(`/users/${userId}`);
+    // const userResponse = await api.get(`/users/${userId}`);
+    const userResponse = await api.get(`/current-user`);
     user.value = userResponse.data;
   } catch (error) {
     console.error("Failed to fetch user:", error);
@@ -39,8 +40,10 @@ const submitRegistration = async () => {
     await api.put(`/user-assign-phone-number`, {
       phone_number: phone_number.value,
     });
-    await api.post(`/user_roles/assign-initial`, { userId: user.value.user_id});
-    const rolesResponse = await api.get(`/user_roles/${user.value.user_id}`);
+    // await api.post(`/user_roles/assign-initial`, { userId: user.value.user_id});
+    await api.post(`/user_roles/assign-initial`);
+    // const rolesResponse = await api.get(`/user_roles/${user.value.user_id}`);
+    const rolesResponse = await api.get(`/current-user/roles`);
     authStore.roles = rolesResponse.data;
     await authStore.checkAuth();
     router.push("/");

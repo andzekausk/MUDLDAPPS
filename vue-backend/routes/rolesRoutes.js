@@ -10,7 +10,7 @@ const {
 const router = express.Router();
 const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/roles", authenticateUser, async (req, res) => {
+router.get("/roles", authenticateUser, authorizeRole(["laborants", "pārvaldnieks", "administrators"]), async (req, res) => {
     try {
         const roles = await getAllRoles();
         res.json(roles);
@@ -20,7 +20,7 @@ router.get("/roles", authenticateUser, async (req, res) => {
     }
 });
 
-router.get("/roles/:roleId", authenticateUser, async (req, res) => {
+router.get("/roles/:roleId", authenticateUser, authorizeRole(["laborants", "pārvaldnieks", "administrators"]), async (req, res) => {
     try {
         const role = await getRoleById(req.params.roleId);
         if (role) {

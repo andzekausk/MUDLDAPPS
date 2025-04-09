@@ -8,14 +8,24 @@ const {
 const { getRoleIdByName } = require("../services/rolesService");
 const router = express.Router();
 const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
+const jwt = require('jsonwebtoken');
 
-router.get("/user_roles/:userId", authenticateUser, async (req, res) => {
+router.get("/user_roles/:userId", authorizeRole(["laborants", "pārvaldnieks", "administrators"]), authenticateUser, async (req, res) => {
     try {
         const roles = await getUserRoles(req.params.userId);
         res.json(roles);
     } catch (error) {
         console.error("Error fetching user roles:", error);
         res.status(500).json({ message: "Error fetching user roles" });
+    }
+});
+router.get("/current-user/roles", authenticateUser, async (req, res) => {
+    try {
+        const roles = await getUserRoles(jwt.verify(req.user.token, process.env.JWT_SECRET).user_id);
+        res.json(roles);
+    } catch (error) {
+        console.error("Error fetching current user roles:", error);
+        res.status(500).json({ message: "Error fetching current user roles" });
     }
 });
 
@@ -32,8 +42,9 @@ router.post('/user_roles/assign', authenticateUser, authorizeRole(["administrato
 
 router.post('/user_roles/assign-initial', authenticateUser, async (req, res) => {
     try {
-        const { userId } = req.body;
+        // const { userId } = req.body;
         const roleId = await getRoleIdByName("lietotājs");
+        const userId = jwt.verify(req.user.token, process.env.JWT_SECRET).user_id;
         await assignRole(userId, roleId);
         res.status(201).json({ message: "Initial role assigned successfully" });
     } catch (error) {
@@ -53,7 +64,7 @@ router.delete('/user_roles/remove', authenticateUser, authorizeRole(["administra
     }
 });
   
-router.get('/user_roles', authenticateUser, async (req, res) => {
+router.get('/user_roles', authenticateUser, authorizeRole(["laborants", "pārvaldnieks", "administrators"]), async (req, res) => {
     try {
         const userRoles = await getAllUserRoles();
         res.json(userRoles);

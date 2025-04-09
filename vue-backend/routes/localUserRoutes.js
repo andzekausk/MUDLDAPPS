@@ -10,7 +10,7 @@ const {
 const router = express.Router();
 const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
-router.get("/local_users", authenticateUser, async (req, res) => {
+router.get("/local_users", authenticateUser, authorizeRole(["laborants", "pārvaldnieks", "administrators"]), async (req, res) => {
   try {
     const users = await getLocalUsers();
     res.json(users);
@@ -20,7 +20,7 @@ router.get("/local_users", authenticateUser, async (req, res) => {
   }
 });
 
-router.get("/local_users/:id", authenticateUser, async (req, res) => {
+router.get("/local_users/:id", authenticateUser, authorizeRole(["laborants", "pārvaldnieks", "administrators"]), async (req, res) => {
   try {
     const user = await getLocalUserById(req.params.id);
     if (!user) {

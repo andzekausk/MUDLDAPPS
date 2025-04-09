@@ -46,7 +46,7 @@ router.get("/reservations/request/:id", authenticateUser, async (req, res) => {
     }
 });
 
-router.post("/reservations", authenticateUser, authorizeRole(["pārvaldnieks"]), async (req, res) => {
+router.post("/reservations", authenticateUser, authorizeRole(["lietotājs", "pārvaldnieks"]), async (req, res) => {
     try {
         const { computer_id, request_id, from_time, to_time } = req.body;
         const newReservation = await createReservation({ computer_id, request_id, from_time, to_time });
