@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import MultiComputerCalendar from "../components/MultiComputerCalendar.vue";
 
 const requests = ref([]);
 const statuses = ["all", "pending", "approved", "denied"];
@@ -87,6 +88,17 @@ const filteredRequests = computed(() => {
     return requests.value.filter(request => request.status === selectedStatus.value);
 });
 
+const selectedComputers = computed(() => {
+    const map = new Map();
+    reservations.value.forEach(r => {
+        map.set(r.computer_id, {
+            computer_id: r.computer_id,
+            computer_name: r.computer_name
+        });
+    });
+    return Array.from(map.values());
+});
+
 onMounted(fetchRequests);
 </script>
 
@@ -129,29 +141,37 @@ onMounted(fetchRequests);
     </div>
 
     <div v-if="isModalOpen" class="modal">
-        <div class="modal-content">
-            <h2>Rediģēt rezervāciju</h2>
-            <p><strong>E-pasts:</strong> {{ selectedRequest.email }}</p>
-            <p><strong>Izveidots:</strong> {{ new Date(selectedRequest.created_at).toLocaleString() }}</p>
-            <p><strong>Informācija:</strong> {{ selectedRequest.information }}</p>
-            <p><strong>Rezervācijas laiki:</strong></p>
-            <ul>
-                <li v-for="time in uniqueTimeRanges" :key="time">{{ time }}</li>
-            </ul>
-            <p><strong>Izvēlētie datori:</strong></p>
-            <ul>
-                <li v-for="computer in uniqueComputers" :key="computer">{{ computer }}</li>
-            </ul>
-            <label for="status">Statuss:</label>
-            <select id="status" v-model="selectedRequest.status">
-                <option v-for="status in statuses.slice(1)" :key="status" :value="status">
-                    {{ status }}
-                </option>
-            </select>
-            
-            <div class="modal-actions">
-                <button @click="updateStatus">Saglabāt</button>
-                <button @click="closeModal">Aizvērt</button>
+        <div class="modal-content horizontal">
+            <div class="modal-left">
+                <h2>Rediģēt rezervāciju</h2>
+                <p><strong>E-pasts:</strong> {{ selectedRequest.email }}</p>
+                <p><strong>Izveidots:</strong> {{ new Date(selectedRequest.created_at).toLocaleString() }}</p>
+                <p><strong>Informācija:</strong> {{ selectedRequest.information }}</p>
+                <p><strong>Rezervācijas laiki:</strong></p>
+                <ul>
+                    <li v-for="time in uniqueTimeRanges" :key="time">{{ time }}</li>
+                </ul>
+                <p><strong>Izvēlētie datori:</strong></p>
+                <ul>
+                    <li v-for="computer in uniqueComputers" :key="computer">{{ computer }}</li>
+                </ul>
+                
+                <label for="status">Statuss:</label>
+                <select id="status" v-model="selectedRequest.status">
+                    <option v-for="status in statuses.slice(1)" :key="status" :value="status">
+                        {{ status }}
+                    </option>
+                </select>
+                <div class="modal-actions">
+                    <button @click="updateStatus">Saglabāt</button>
+                    <button @click="closeModal">Aizvērt</button>
+                </div>
+            </div>
+            <div class="modal-right">
+                <MultiComputerCalendar
+                :computers="selectedComputers"
+                :reservations="reservations"
+                />
             </div>
         </div>
     </div>
@@ -205,6 +225,26 @@ button {
     padding: 20px;
     border-radius: 5px;
     min-width: 300px;
+}
+
+.modal-content.horizontal {
+  display: flex;
+  gap: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-left {
+  flex: 1;
+  min-width: 300px;
+}
+
+.modal-right {
+  flex: 2;
+  min-width: 400px;
+  max-height: 80vh;
+  overflow: auto;
 }
 
 .modal-actions {
