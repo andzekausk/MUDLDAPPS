@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import MultiComputerCalendar from "../components/MultiComputerCalendar.vue";
+import api from "../services/api";
 
 const requests = ref([]);
 const statuses = ["all", "pending", "approved", "denied"];
@@ -8,7 +9,8 @@ const selectedStatus = ref("pending");
 const isModalOpen = ref(false);
 const selectedRequest = ref(null);
 const reservations = ref([]);
-import api from "../services/api";
+const allReservations = ref([]);
+
 
 const fetchRequests = async () => {
     try {
@@ -25,6 +27,14 @@ const fetchReservations = async (requestId) => {
         reservations.value = response.data;
     } catch (error) {
         console.error("Failed to fetch reservations:", error);
+    }
+}
+const fetchAllReservations = async () => {
+    try {
+        const response = await api.get(`/reservations`);
+        allReservations.value = response.data;
+    } catch (error) {
+        console.error("Failed to fetch all reservations:", error);
     }
 }
 
@@ -99,7 +109,10 @@ const selectedComputers = computed(() => {
     return Array.from(map.values());
 });
 
-onMounted(fetchRequests);
+onMounted(() => {
+    fetchRequests();
+    fetchAllReservations();
+});
 </script>
 
 <template>
@@ -170,7 +183,7 @@ onMounted(fetchRequests);
             <div class="modal-right">
                 <MultiComputerCalendar
                 :computers="selectedComputers"
-                :reservations="reservations"
+                :reservations="allReservations"
                 />
             </div>
         </div>
