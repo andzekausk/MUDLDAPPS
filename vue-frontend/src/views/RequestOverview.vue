@@ -109,6 +109,14 @@ const selectedComputers = computed(() => {
     return Array.from(map.values());
 });
 
+const highlightedReservations = computed(() => {
+  if (!selectedRequest.value) return [];
+
+  return allReservations.value.filter(reservation =>
+    reservation.request_id === selectedRequest.value.request_id
+  );
+});
+
 onMounted(() => {
     fetchRequests();
     fetchAllReservations();
@@ -184,6 +192,7 @@ onMounted(() => {
                 <MultiComputerCalendar
                 :computers="selectedComputers"
                 :reservations="allReservations"
+                :selectedRequest="selectedRequest"
                 />
             </div>
         </div>

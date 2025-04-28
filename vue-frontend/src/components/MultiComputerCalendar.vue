@@ -8,7 +8,6 @@
         <button @click="resetDate">Šodiena</button>
       </div>
   
-      <!-- Calendar grid view -->
       <div class="calendars">
         <div 
           v-for="(computer, index) in computers" 
@@ -36,6 +35,7 @@
     props: {
       computers: Array,
       reservations: Array,
+      selectedRequest: Object,
     },
     data() {
       return {
@@ -54,7 +54,14 @@
         const events = this.reservations.filter(
           (reservation) =>
             reservation.computer_id === computerId && reservation.status !== "denied"
-        );
+        ).map(reservation => {
+      const isHighlighted = reservation.request_id === this.selectedRequest?.request_id;
+
+      return {
+        ...reservation,
+        className: isHighlighted ? "highlighted-reservation" : "",
+      };
+    });
         return {
           plugins: [timeGridPlugin, interactionPlugin],
           initialView: "timeGridDay",
@@ -177,4 +184,9 @@
     background: transparent !important; 
   }
   
+  .highlighted-reservation {
+    border: 2px solid rgb(0, 132, 219) !important;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
   </style>
