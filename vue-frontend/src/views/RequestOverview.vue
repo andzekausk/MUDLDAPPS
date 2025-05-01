@@ -10,6 +10,7 @@ const isModalOpen = ref(false);
 const selectedRequest = ref(null);
 const reservations = ref([]);
 const allReservations = ref([]);
+const selectedReservationDate = ref(null);
 
 
 const fetchRequests = async () => {
@@ -39,8 +40,10 @@ const fetchAllReservations = async () => {
 }
 
 const openModal = async (request) => {
+    // selectedReservationDate.value = earliestReservationDate.value;
     selectedRequest.value = { ...request };
     await fetchReservations(request.request_id);
+    selectedReservationDate.value = reservationDates.value[0] || null;
     isModalOpen.value = true;
 };
 
@@ -72,7 +75,7 @@ const updateStatus = async () => {
 
 const uniqueTimeRanges = computed(() => { // prevents duplicate times
     const times = new Set();
-    
+
     reservations.value.forEach(reservation => {
         const timeRange = `${new Date(reservation.from_time).toLocaleString()} - ${new Date(reservation.to_time).toLocaleString()}`;
         times.add(timeRange);
@@ -83,7 +86,7 @@ const uniqueTimeRanges = computed(() => { // prevents duplicate times
 
 const uniqueComputers = computed(() => { // prevents duplicate computers
     const computers = new Set();
-    
+
     reservations.value.forEach(reservation => {
         computers.add(reservation.computer_name);
     });
@@ -110,12 +113,34 @@ const selectedComputers = computed(() => {
 });
 
 const highlightedReservations = computed(() => {
-  if (!selectedRequest.value) return [];
+    if (!selectedRequest.value) return [];
 
-  return allReservations.value.filter(reservation =>
-    reservation.request_id === selectedRequest.value.request_id
-  );
+    return allReservations.value.filter(reservation =>
+        reservation.request_id === selectedRequest.value.request_id
+    );
 });
+
+const reservationDates = computed(() => {
+    // return reservations.value
+    //     .map(r => new Date(r.from_time).toISOString().split("T")[0])
+    //     .filter((v, i, a) => a.indexOf(v) === i)
+    //     .sort();
+    const dateSet = new Set();
+    reservations.value.forEach(r => {
+        const from = new Date(r.from_time);
+        const to = new Date(r.to_time);
+        let current = new Date(from);
+        while (current <= to) {
+            const dateStr = current.toISOString().split("T")[0]; // YYYY-MM-DD
+            dateSet.add(dateStr);
+            current.setDate(current.getDate() + 1);
+        }
+    });
+    return Array.from(dateSet).sort();
+});
+
+const earliestReservationDate = computed(() => reservationDates.value[0] || null);
+
 
 onMounted(() => {
     fetchRequests();
@@ -176,7 +201,7 @@ onMounted(() => {
                 <ul>
                     <li v-for="computer in uniqueComputers" :key="computer">{{ computer }}</li>
                 </ul>
-                
+
                 <label for="status">Statuss:</label>
                 <select id="status" v-model="selectedRequest.status">
                     <option v-for="status in statuses.slice(1)" :key="status" :value="status">
@@ -189,11 +214,16 @@ onMounted(() => {
                 </div>
             </div>
             <div class="modal-right">
-                <MultiComputerCalendar
-                :computers="selectedComputers"
-                :reservations="allReservations"
-                :selectedRequest="selectedRequest"
-                />
+                <label for="reservation-date">Izvēlies datumu: </label>
+                <select id="reservation-date" v-model="selectedReservationDate">
+                    <option v-for="date in reservationDates" :key="date" :value="date">
+                        {{ new Date(date).toLocaleDateString("lv-LV", {
+                            year: 'numeric', month: 'long', day: 'numeric'
+                        }) }}
+                    </option>
+                </select>
+                <MultiComputerCalendar :computers="selectedComputers" :reservations="allReservations"
+                    :selectedRequest="selectedRequest" :initialDate="selectedReservationDate" />
             </div>
         </div>
     </div>
@@ -214,14 +244,18 @@ table {
     width: 100%;
     border-collapse: collapse;
 }
-th, td {
+
+th,
+td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
 }
+
 th {
     background-color: #f4f4f4;
 }
+
 button {
     background: #4caf50;
     color: white;
@@ -250,23 +284,23 @@ button {
 }
 
 .modal-content.horizontal {
-  display: flex;
-  gap: 20px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow: auto;
+    display: flex;
+    gap: 20px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
 }
 
 .modal-left {
-  flex: 1;
-  min-width: 300px;
+    flex: 1;
+    min-width: 300px;
 }
 
 .modal-right {
-  flex: 2;
-  min-width: 400px;
-  max-height: 80vh;
-  overflow: auto;
+    flex: 2;
+    min-width: 400px;
+    max-height: 80vh;
+    overflow: auto;
 }
 
 .modal-actions {

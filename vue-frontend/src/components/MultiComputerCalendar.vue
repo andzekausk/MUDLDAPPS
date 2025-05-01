@@ -34,11 +34,25 @@ export default {
     computers: Array,
     reservations: Array,
     selectedRequest: Object,
+    initialDate: String,
   },
   data() {
     return {
-      currentDate: new Date().toLocaleDateString("lv-LV"),
+      currentDate: this.initialDate || new Date().toLocaleDateString("lv-LV"),
     };
+  },
+
+  watch: {
+    initialDate(newDate) {
+      if (newDate) {
+        const parsed = new Date(newDate);
+        this.$refs.calendars.forEach((calendar) => {
+          const api = calendar.getApi();
+          api.gotoDate(parsed);
+          this.updateCurrentDate(api);
+        });
+      }
+    }
   },
   mounted() {
     this.$nextTick(() => {
@@ -46,6 +60,13 @@ export default {
         this.syncScrolling();
       }, 100);
     });
+    if (this.initialDate) {
+      const date = new Date(this.initialDate);
+      this.$refs.calendars.forEach(calendar => {
+        calendar.getApi().gotoDate(date);
+        this.updateCurrentDate(calendar.getApi());
+      });
+    }
   },
   methods: {
     getCalendarOptions(computerId) {
