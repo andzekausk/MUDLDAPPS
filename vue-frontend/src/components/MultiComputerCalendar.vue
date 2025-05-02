@@ -232,7 +232,10 @@ export default {
   border-radius: 4px;
 }
 
-input[type="date"]::-webkit-datetime-edit {
+</style>
+
+<style scoped>
+.calendar-date-input::-webkit-datetime-edit {
   display: none;
 }
 </style>
