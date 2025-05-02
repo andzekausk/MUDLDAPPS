@@ -137,7 +137,7 @@ const reservationDates = computed(() => {
         const to = new Date(r.to_time);
         let current = new Date(from);
         while (current <= to) {
-            const dateStr = current.toISOString().split("T")[0];
+            const dateStr = current.toLocaleDateString('sv-SE'); //swedish time for unambigious date format
             dateSet.add(dateStr);
             current.setDate(current.getDate() + 1);
         }
