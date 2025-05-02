@@ -42,6 +42,7 @@ async function getReservationsByRequestId(requestId) {
         FROM reservations r
         LEFT JOIN computers c ON r.computer_id = c.computer_id
         WHERE r.request_id = ?
+        ORDER BY c.computer_id
     `, [requestId]);
     return rows;
 }

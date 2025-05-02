@@ -4,7 +4,7 @@
     <div class="calendar-header">
       <button @click="changeDate('prev')">Iepriekšējais</button>
       <h2>{{ currentDate }}</h2>
-      <input ref="hiddenDateInput" type="date" @change="handleDatePicked" @keydown.prevent @paste.prevent
+      <input ref="hiddenDateInput" type="date" class="calendar-date-input" @change="handleDatePicked" @keydown.prevent @paste.prevent
         @input.prevent />
       <button @click="changeDate('next')">Nākamais</button>
       <button @click="resetDate">Šodiena</button>
