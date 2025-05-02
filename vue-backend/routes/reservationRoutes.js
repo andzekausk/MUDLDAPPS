@@ -1,24 +1,25 @@
 const express = require("express");
-const { 
-  getReservations,
-  getReservationById,
-  getReservationsByRequestId,
-  createReservation,
-  updateReservation,
-  deleteReservation } = require("../services/reservationService");
+const {
+    getReservations,
+    getReservationById,
+    getReservationsByRequestId,
+    createReservation,
+    updateReservation,
+    deleteReservation,
+    getApprovedReservations } = require("../services/reservationService");
 
 const router = express.Router();
 const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
 router.get("/reservations", authenticateUser, async (req, res) => {
     try {
-      const reservations = await getReservations();
-      res.json( reservations );
+        const reservations = await getReservations();
+        res.json(reservations);
     } catch (error) {
-      console.error("Error fetching reservations:", error);
-      res.status(500).json({ message: "Error fetching reservations" });
+        console.error("Error fetching reservations:", error);
+        res.status(500).json({ message: "Error fetching reservations" });
     }
-  });
+});
 
 router.get("/reservations/:id", authenticateUser, async (req, res) => {
     try {
@@ -68,7 +69,7 @@ router.put("/reservations/:id", authenticateUser, authorizeRole(["pārvaldnieks"
     }
 });
 
-router.delete("/reservations/:id", authenticateUser, authorizeRole(["pārvaldnieks"]),  async (req, res) => {
+router.delete("/reservations/:id", authenticateUser, authorizeRole(["pārvaldnieks"]), async (req, res) => {
     try {
         await deleteReservation(req.params.id);
         res.json({ message: "Reservation deleted successfully" });
@@ -78,4 +79,19 @@ router.delete("/reservations/:id", authenticateUser, authorizeRole(["pārvaldnie
     }
 });
 
-  module.exports = router;
+router.get('/report-reservations', /* authenticateUser, authorizeRole(["pārvaldnieks"]), */ async (req, res) => {
+    const { start, end } = req.query;
+
+    if (!start || !end) {
+        return res.status(400).json({ message: 'Missing start or end date' });
+    }
+    try {
+        const rows = await getApprovedReservations(start, end);
+        res.json(rows);
+    } catch (err) {
+        console.error('Error fetching report reservations:', err);
+        res.status(500).send('Server error');
+    }
+});
+
+module.exports = router;

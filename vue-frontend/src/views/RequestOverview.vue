@@ -12,6 +12,11 @@ const reservations = ref([]);
 const allReservations = ref([]);
 const selectedReservationDate = ref(null);
 
+const isReportModalOpen = ref(false);
+const reportStartDate = ref(null);
+const reportEndDate = ref(null);
+
+const reportReservations = ref([]);
 
 const fetchRequests = async () => {
     try {
@@ -39,8 +44,21 @@ const fetchAllReservations = async () => {
     }
 }
 
+const fetchReportReservations = async (startDate, endDate) => {
+    try {
+        const response = await api.get('/report-reservations', {
+            params: {
+                start: startDate,
+                end: endDate
+            }
+        });
+        reportReservations.value = response.data;
+    } catch (error) {
+        console.error("Failed to fetch report reservations:", error);
+    }
+};
+
 const openModal = async (request) => {
-    // selectedReservationDate.value = earliestReservationDate.value;
     selectedRequest.value = { ...request };
     await fetchReservations(request.request_id);
     selectedReservationDate.value = reservationDates.value[0] || null;
@@ -112,26 +130,14 @@ const selectedComputers = computed(() => {
     return Array.from(map.values());
 });
 
-const highlightedReservations = computed(() => {
-    if (!selectedRequest.value) return [];
-
-    return allReservations.value.filter(reservation =>
-        reservation.request_id === selectedRequest.value.request_id
-    );
-});
-
 const reservationDates = computed(() => {
-    // return reservations.value
-    //     .map(r => new Date(r.from_time).toISOString().split("T")[0])
-    //     .filter((v, i, a) => a.indexOf(v) === i)
-    //     .sort();
     const dateSet = new Set();
     reservations.value.forEach(r => {
         const from = new Date(r.from_time);
         const to = new Date(r.to_time);
         let current = new Date(from);
         while (current <= to) {
-            const dateStr = current.toISOString().split("T")[0]; // YYYY-MM-DD
+            const dateStr = current.toISOString().split("T")[0];
             dateSet.add(dateStr);
             current.setDate(current.getDate() + 1);
         }
@@ -139,8 +145,122 @@ const reservationDates = computed(() => {
     return Array.from(dateSet).sort();
 });
 
-const earliestReservationDate = computed(() => reservationDates.value[0] || null);
+const openReportModal = () => {
+    isReportModalOpen.value = true;
+    reportStartDate.value = null;
+    reportEndDate.value = null;
+};
 
+const closeReportModal = () => {
+    isReportModalOpen.value = false;
+};
+
+const generateReport = async () => {
+    const start = new Date(reportStartDate.value);
+    const end = new Date(reportEndDate.value);
+    if (!start || !end || start > end) {
+        alert("Lūdzu, ievadiet pareizu datumu intervālu.");
+        return;
+    }
+
+    await fetchReportReservations(start, end);
+
+    const dates = [];
+    const current = new Date(start);
+    while (current <= end) {
+        dates.push(current.toISOString().split("T")[0]);
+        current.setDate(current.getDate() + 1);
+    }
+
+    const computerMap = new Map();
+    for (const r of reportReservations.value) {
+        if (!computerMap.has(r.computer_id)) {
+            computerMap.set(r.computer_id, r.computer_name);
+        }
+    }
+
+    const computerIds = Array.from(computerMap.keys());
+    const rows = [];
+    for (const dateStr of dates) {
+        const dayStart = new Date(`${dateStr}T00:00:00`);
+        const dayEnd = new Date(`${dateStr}T23:59:59`);
+        const workStart = new Date(`${dateStr}T08:00:00`);
+        const workEnd = new Date(`${dateStr}T18:00:00`);
+
+        const computerHours = {};
+
+        for (const id of computerIds) {
+            computerHours[id] = { total: 0, work: 0 };
+        }
+
+        const intervalsForOverlap = [];
+
+        for (const r of reportReservations.value) {
+            const resStart = new Date(r.from_time);
+            const resEnd = new Date(r.to_time);
+            if (resEnd < dayStart || resStart > dayEnd) continue;
+
+            const overlapStart = resStart > dayStart ? resStart : dayStart;
+            const overlapEnd = resEnd < dayEnd ? resEnd : dayEnd;
+            const hoursTotal = (overlapEnd - overlapStart) / 1000 / 60 / 60;
+
+            if (hoursTotal > 0) {
+                computerHours[r.computer_id].total += hoursTotal;
+
+                const workOverlapStart = overlapStart > workStart ? overlapStart : workStart;
+                const workOverlapEnd = overlapEnd < workEnd ? overlapEnd : workEnd;
+
+                const workHours = (workOverlapEnd - workOverlapStart) / 1000 / 60 / 60;
+                if (workHours > 0) {
+                    computerHours[r.computer_id].work += workHours;
+                }
+
+                intervalsForOverlap.push([overlapStart, overlapEnd]);
+            }
+        }
+
+        // calculate nonoverlapping hours
+        intervalsForOverlap.sort((a, b) => a[0] - b[0]);
+        const merged = [];
+        for (const interval of intervalsForOverlap) {
+            if (!merged.length || interval[0] > merged[merged.length - 1][1]) {
+                merged.push(interval);
+            } else {
+                merged[merged.length - 1][1] = new Date(Math.max(
+                    merged[merged.length - 1][1], interval[1]
+                ));
+            }
+        }
+
+        const overlapTotal = merged.reduce((sum, [start, end]) => sum + (end - start) / 1000 / 60 / 60, 0);
+
+        const row = [dateStr];
+        for (const id of computerIds) {
+            const comp = computerHours[id];
+            row.push(comp.total.toFixed(2), comp.work.toFixed(2));
+        }
+        row.push(overlapTotal.toFixed(2));
+        rows.push(row);
+    }
+
+    // Build header
+    const header = ["Datums"];
+    for (const id of computerIds) {
+        const name = computerMap.get(id);
+        header.push(`${name} 24h`, `${name} 8-18h`);
+    }
+    header.push("kopējā noslogotība");
+
+    const lines = [header.join("\t"), ...rows.map(r => r.join("\t"))];
+    const blob = new Blob([lines.join("\n")], { type: "text/tab-separated-values" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `noslogotibas-parskats_${reportStartDate.value}_-_${reportEndDate.value}.tsv`;
+    a.click();
+    URL.revokeObjectURL(url);
+};
 
 onMounted(() => {
     fetchRequests();
@@ -151,6 +271,7 @@ onMounted(() => {
 <template>
     <div class="request-container">
         <h1>Rezervāciju veidošana</h1>
+        <button @click="openReportModal">Ģenerēt noslogotības pārskatu</button>
 
         <div class="filter-container">
             <label for="statusFilter">Filtrēt pēc statusa:</label>
@@ -227,6 +348,22 @@ onMounted(() => {
             </div>
         </div>
     </div>
+
+    <div v-if="isReportModalOpen" class="modal">
+        <div class="modal-content">
+            <h2>Ģenerēt noslogotības pārskatu</h2>
+            <label>Sākuma datums:</label>
+            <input type="date" v-model="reportStartDate">
+            <label>Beigu datums:</label>
+            <input type="date" v-model="reportEndDate">
+
+            <div class="modal-actions">
+                <button @click="generateReport">Ģenerēt un lejupielādēt</button>
+                <button @click="closeReportModal">Aizvērt</button>
+            </div>
+        </div>
+    </div>
+
 </template>
 
 <style scoped>
