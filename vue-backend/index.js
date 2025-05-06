@@ -12,6 +12,7 @@ const userRoutes = require("./routes/userRoutes");
 const userRolesRoutes = require("./routes/userRolesRoutes");
 const rolesRoutes = require("./routes/rolesRoutes");
 const localUserRoutes = require("./routes/localUserRoutes");
+const issueRoutes = require("./routes/issueRoutes");
 
 const app = express();
 app.use(cors());
@@ -33,6 +34,7 @@ app.use("/api", userRoutes);
 app.use("/api", userRolesRoutes);
 app.use("/api", rolesRoutes);
 app.use("/api", localUserRoutes);
+app.use("/api", issueRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {

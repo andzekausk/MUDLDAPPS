@@ -8,6 +8,7 @@ import ResourceRequest from "./views/ResourceRequest.vue";
 import RequestOverview from "./views/RequestOverview.vue";
 import UserOverview from "./views/UserOverview.vue";
 import Register from "./views/Register.vue";
+import ReportProblem from "./views/ReportProblem.vue";
 import { useAuthStore } from "./store/auth";
 
 const routes = [
@@ -20,6 +21,7 @@ const routes = [
     { path: "/request_overview", component: RequestOverview, meta: { requiresAuth: true }},
     { path: "/user_overview", component: UserOverview, meta: { requiresAuth: true }},
     { path: "/register", component: Register},
+    { path: "/report_problem", component: ReportProblem, meta: { requiresAuth: true }},
 
 ];
 
