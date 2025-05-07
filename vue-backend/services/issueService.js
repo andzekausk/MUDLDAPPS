@@ -8,7 +8,7 @@ async function createIssue({ user_id, title, description }) {
     return { issue_id: result.insertId, user_id, title, description };
 }
 
-async function createIssueComputers(issue_id, computer_ids){
+async function createIssueComputers(issue_id, computer_ids) {
     const values = computer_ids.map(id => [issue_id, id])
     await pool.query(`
         INSERT INTO issue_computers (issue_id, computer_id)
@@ -43,10 +43,27 @@ async function getComputersForIssue(issue_id) {
     return rows;
 }
 
+async function updateIssueStatus(issue_id, status) {
+    await pool.query(`
+        UPDATE issues SET status = ?
+        WHERE issue_id = ?
+    `, [status, issue_id]);
+}
+
+async function updateIssueComputerStatus(issue_id, computer_id, status) {
+    await pool.query(`
+        UPDATE issue_computers
+        SET status = ?
+        WHERE issue_id = ? AND computer_id = ?
+    `, [status, issue_id, computer_id]);
+}
+
 module.exports = {
     createIssue,
     createIssueComputers,
     getIssues,
     getIssueById,
     getComputersForIssue,
+    updateIssueStatus,
+    updateIssueComputerStatus,
 };

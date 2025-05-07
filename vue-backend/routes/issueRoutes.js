@@ -4,7 +4,9 @@ const {
     createIssueComputers,
     getIssues,
     getIssueById,
-    getComputersForIssue
+    getComputersForIssue,
+    updateIssueStatus,
+    updateIssueComputerStatus
 } = require("../services/issueService");
 
 const router = express.Router();
@@ -45,6 +47,36 @@ router.post("/issues", authenticateUser, authorizeRole(["lietotājs"]), async (r
     } catch (error) {
         console.error("Error creating issue:", error);
         res.status(500).json({ message: "Error creating issue" });
+    }
+});
+
+router.put("/issues/:id/status", authenticateUser, authorizeRole(["administrators", "pārvaldnieks"]), async (req, res) => {
+    try {
+        const { status } = req.body;
+        const { id } = req.params;
+
+        if (!["pending", "solved", "unsolved"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+
+        await updateIssueStatus(id, status);
+
+        res.json({ message: "Status updated" });
+    } catch (error) {
+        console.error("Failed to update issue status:", error);
+        res.status(500).json({ message: "Failed to update issue status" });
+    }
+});
+
+router.put("/issues/:id/computer/:computerId", authenticateUser, authorizeRole(["administrators", "pārvaldnieks"]), async (req, res) => {
+    const { status } = req.body;
+
+    try {
+        await updateIssueComputerStatus(req.params.id, req.params.computerId, status);
+        res.json({ message: "Computer issue status updated" });
+    } catch (error) {
+        console.error("Error updating computer issue status:", error);
+        res.status(500).json({ message: "Error updating computer issue status" });
     }
 });
 

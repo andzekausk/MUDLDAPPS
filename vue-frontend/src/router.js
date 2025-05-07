@@ -9,6 +9,7 @@ import RequestOverview from "./views/RequestOverview.vue";
 import UserOverview from "./views/UserOverview.vue";
 import Register from "./views/Register.vue";
 import ReportProblem from "./views/ReportProblem.vue";
+import ProblemOverview from "./views/ProblemOverview.vue";
 import { useAuthStore } from "./store/auth";
 
 const routes = [
@@ -22,7 +23,7 @@ const routes = [
     { path: "/user_overview", component: UserOverview, meta: { requiresAuth: true }},
     { path: "/register", component: Register},
     { path: "/report_problem", component: ReportProblem, meta: { requiresAuth: true }},
-
+    { path: "/problem_overview", component: ProblemOverview, meta: { requiresAuth: true }},
 ];
 
 const router = createRouter({
