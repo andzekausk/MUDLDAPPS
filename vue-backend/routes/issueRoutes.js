@@ -6,7 +6,9 @@ const {
     getIssueById,
     getComputersForIssue,
     updateIssueStatus,
-    updateIssueComputerStatus
+    updateIssueComputerStatus,
+    getIssueComments,
+    addIssueComment
 } = require("../services/issueService");
 
 const router = express.Router();
@@ -77,6 +79,29 @@ router.put("/issues/:id/computer/:computerId", authenticateUser, authorizeRole([
     } catch (error) {
         console.error("Error updating computer issue status:", error);
         res.status(500).json({ message: "Error updating computer issue status" });
+    }
+});
+
+router.get("/issues/:id/comments", authenticateUser, async (req, res) => {
+    try {
+        const comments = await getIssueComments(req.params.id);
+        res.json({ comments });
+    } catch (err) {
+        console.error("Failed to fetch comments:", err);
+        res.status(500).json({ message: "Failed to fetch comments" });
+    }
+});
+
+router.post("/issues/:id/comments", authenticateUser, async (req, res) => {
+    try {
+        const { user_id, comment } = req.body;
+        const issue_id = req.params.id;
+        // const user_id = req.user.user_id;
+        await addIssueComment(issue_id, user_id, comment);
+        res.status(201).json({ message: "Comment added" });
+    } catch (err) {
+        console.error("Failed to add comment:", err);
+        res.status(500).json({ message: "Failed to add comment" });
     }
 });
 

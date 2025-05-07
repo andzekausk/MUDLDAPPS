@@ -58,6 +58,24 @@ async function updateIssueComputerStatus(issue_id, computer_id, status) {
     `, [status, issue_id, computer_id]);
 }
 
+async function getIssueComments(issue_id) {
+    const [rows] = await pool.query(`
+        SELECT ic.comment, ic.created_at, u.email 
+        FROM issue_comments ic
+        JOIN users u ON ic.user_id = u.user_id
+        WHERE ic.issue_id = ?
+        ORDER BY ic.created_at ASC
+    `, [issue_id]);
+    return rows;
+}
+
+async function addIssueComment(issue_id, user_id, comment) {
+    await pool.query(`
+        INSERT INTO issue_comments (issue_id, user_id, comment, created_at)
+        VALUES (?, ?, ?, NOW())
+    `, [issue_id, user_id, comment]);
+}
+
 module.exports = {
     createIssue,
     createIssueComputers,
@@ -66,4 +84,6 @@ module.exports = {
     getComputersForIssue,
     updateIssueStatus,
     updateIssueComputerStatus,
+    getIssueComments,
+    addIssueComment,
 };

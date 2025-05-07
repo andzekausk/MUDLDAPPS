@@ -1,13 +1,18 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useAuthStore } from "../store/auth";
+import { jwtDecode } from "jwt-decode";
 import api from "../services/api";
 
+const authStore = useAuthStore();
 const issues = ref([]);
 const statuses = ["pending", "solved", "unsolved"];
 const selectedStatus = ref("pending");
 const filteredIssues = ref([]);
 const isModalOpen = ref(false);
 const selectedIssue = ref(null);
+const comments = ref([]);
+const newComment = ref("");
 
 const fetchIssues = async () => {
     try {
@@ -16,6 +21,36 @@ const fetchIssues = async () => {
         filterIssues();
     } catch (error) {
         console.error("Failed to fetch issues:", error);
+    }
+};
+
+const fetchComments = async () => {
+    try {
+        const res = await api.get(`/issues/${selectedIssue.value.issue_id}/comments`);
+        comments.value = res.data.comments;
+    } catch (err) {
+        console.error("Failed to load comments:", err);
+    }
+};
+
+const submitComment = async () => {
+    if (!newComment.value.trim()) return;
+    const userId = jwtDecode(authStore.token)?.user_id;
+    if (!userId) {
+        alert("Nevarēja iegūt lietotāja ID. Lūdzu, ielogojieties vēlreiz.");
+        return;
+    }
+    try {
+        // await api.addIssueComment(selectedIssue.value.issue_id, newComment.value.trim());
+        await api.post(`/issues/${selectedIssue.value.issue_id}/comments`,{
+            user_id: userId,
+            comment: newComment.value.trim()
+        }); 
+        newComment.value = "";
+        await fetchComments();
+    } catch (err) {
+        console.error("Failed to add comment:", err);
+        alert("Neizdevās pievienot komentāru.");
     }
 };
 
@@ -30,8 +65,11 @@ const filterIssues = () => {
 const openModal = async (issue) => {
     try {
         const response = await api.get(`/issues/${issue.issue_id}`);
-        selectedIssue.value = response.data.issue;
-        selectedIssue.value.computers = response.data.computers;
+        selectedIssue.value = {
+            ...response.data.issue,
+            computers: response.data.computers,
+        };
+        await fetchComments();
         isModalOpen.value = true;
     } catch (error) {
         console.error("Failed to load issue details:", error);
@@ -58,9 +96,6 @@ const updateIssue = async () => {
         }
 
         const index = issues.value.findIndex(i => i.issue_id === selectedIssue.value.issue_id);
-        // if (index !== -1) {
-        //     issues.value[index] = { ...selectedIssue.value };
-        // }
         if (index !== -1) {
             issues.value[index].status = selectedIssue.value.status;
         }
@@ -135,6 +170,18 @@ onMounted(fetchIssues);
                 </li>
             </ul>
 
+            <h3>Komentāri</h3>
+            <div class="comments-section">
+                <div v-for="(c, idx) in comments" :key="idx" class="comment">
+                    <p><strong>{{ c.email }}</strong> <em>{{ new Date(c.created_at).toLocaleString() }}</em></p>
+                    <p>{{ c.comment }}</p>
+                </div>
+
+                <textarea v-model="newComment" placeholder="Pievieno komentāru..." rows="3"
+                    style="width: 100%; margin-top: 10px;"></textarea>
+                <button @click="submitComment" style="margin-top: 5px;">Pievienot komentāru</button>
+            </div>
+
             <div class="modal-actions">
                 <button @click="updateIssue">Saglabāt</button>
                 <button @click="closeModal">Aizvērt</button>
@@ -202,5 +249,20 @@ button {
     margin-top: 20px;
     display: flex;
     justify-content: space-between;
+}
+
+.comments-section {
+    margin-top: 20px;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.comment {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
 }
 </style>
