@@ -218,7 +218,7 @@ th {
 }
 
 button {
-    background: #4caf50;
+    background: #f44336;
     color: white;
     border: none;
     padding: 5px 10px;

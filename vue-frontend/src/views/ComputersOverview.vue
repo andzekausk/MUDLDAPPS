@@ -21,13 +21,21 @@ const editedComputer = ref({
   column: "",
 });
 
+const showComponentModal = ref(false);
+const components = ref([]);
+const newComponent = ref({
+  name: "",
+  category: "",
+  description: "",
+});
+
 const fetchComputers = async () => {
-    try {
-        const response = await api.get("/computers");
-        computers.value = response.data.computers; 
-    } catch (error) {
-        console.error("Failed to fetch computers:", error);
-    }
+  try {
+    const response = await api.get("/computers");
+    computers.value = response.data.computers;
+  } catch (error) {
+    console.error("Failed to fetch computers:", error);
+  }
 };
 
 const addComputer = async () => {
@@ -35,27 +43,27 @@ const addComputer = async () => {
     await api.post("/computers", newComputer.value);
     showModal.value = false;
     fetchComputers();
-    newComputer.value = { name: "", description: "", row: "", column: "" }; 
+    newComputer.value = { name: "", description: "", row: "", column: "" };
   } catch (error) {
     console.error("Failed to add computer:", error);
   }
 };
 
 const deleteComputer = async (computerId) => {
-    try {
-        await api.delete(`/computers/${computerId}`);
-        computers.value = computers.value.filter(c => c.computer_id !== computerId);
-        alert("Dators veiksmīgi izdzēsts!");
-    } catch (error) {
-        console.error("Error deleting computer:", error);
-        alert("Kļūda dzēšot datoru!");
-    }
+  try {
+    await api.delete(`/computers/${computerId}`);
+    computers.value = computers.value.filter(c => c.computer_id !== computerId);
+    alert("Dators veiksmīgi izdzēsts!");
+  } catch (error) {
+    console.error("Error deleting computer:", error);
+    alert("Kļūda dzēšot datoru!");
+  }
 };
 
 const confirmDelete = (computerId) => {
-    if (confirm("Vai tiešām vēlies dzēst šo datoru?")) {
-        deleteComputer(computerId);
-    }
+  if (confirm("Vai tiešām vēlies dzēst šo datoru?")) {
+    deleteComputer(computerId);
+  }
 };
 
 
@@ -80,77 +88,167 @@ const updateComputer = async () => {
   }
 };
 
+const fetchComponents = async () => {
+  try {
+    const response = await api.get("/components");
+    components.value = response.data.components;
+  } catch (error) {
+    console.error("Failed to load components:", error);
+  }
+};
+
+const addComponent = async () => {
+  try {
+    await api.post("/components", newComponent.value);
+    await fetchComponents();
+    newComponent.value = { name: "", category: "", description: "" };
+  } catch (error) {
+    console.error("Failed to add component:", error);
+  }
+};
+
+const saveComponent = async (component) => {
+  if (!confirm("Vai tiešām vēlies rediģēt šo komponenti?")) return;
+  try {
+    await api.put(`/components/${component.component_id}`, {
+      name: component.component_name,
+      category: component.category,
+      description: component.description
+    });
+    fetchComponents();
+    alert("Komponente veiksmīgi pārveidota.");
+  } catch (error) {
+    console.error("Failed to update component:", error);
+    alert("Neizdevās atjaunināt komponenti.");
+  }
+};
+
+const deleteComponent = async (componentId) => {
+  if (!confirm("Vai tiešām vēlies dzēst šo komponenti?")) return;
+
+  try {
+    await api.delete(`/components/${componentId}`);
+    fetchComponents();
+    alert("Komponente veiksmīgi izdzēsta.");
+  } catch (error) {
+    console.error("Failed to delete component:", error);
+    alert("Neizdevās dzēst komponenti. Tā iespējams tiek izmantota.");
+  }
+};
+
 onMounted(fetchComputers);
 </script>
 
 <template>
-  
-    <div class="computers-container">
-      <h1>Datoru pārskats</h1>
 
-      <button @click="showModal = true" class="add-button">Pievienot datoru</button>
+  <div class="computers-container">
+    <h1>Datoru pārskats</h1>
 
-      <div class="computer-cards">
-        <div v-for="computer in computers" :key="computer.computer_id" class="computer-card">
-          <h2>{{ computer.computer_name }}</h2>
-          <p><strong>Komponentes:</strong> {{ computer.components.join(', ') }}</p>
-          <div v-for="os in computer.os_details" :key="os.os_name">
-            <p><strong>OS:</strong> {{ os.os_name }} ({{ os.os_version }})</p>
-            <p><strong>Programmatūra:</strong> 
-              {{ os.software.length > 0 ? os.software.join(', ') : "Nav instalēta" }}
-            </p>
-          </div>
-          <button @click="editComputer(computer)" class="edit-btn">Rediģēt</button>
-          <button @click="confirmDelete(computer.computer_id)" class="delete-btn">Dzēst</button>
+    <button @click="showModal = true" class="add-button">Pievienot datoru</button>
+    <button @click="() => { showComponentModal = true; fetchComponents(); }" class="add-button">
+      Komponentes
+    </button>
+
+    <div class="computer-cards">
+      <div v-for="computer in computers" :key="computer.computer_id" class="computer-card">
+        <h2>{{ computer.computer_name }}</h2>
+        <p><strong>Komponentes:</strong> {{ computer.components.join(', ') }}</p>
+        <div v-for="os in computer.os_details" :key="os.os_name">
+          <p><strong>OS:</strong> {{ os.os_name }} ({{ os.os_version }})</p>
+          <p><strong>Programmatūra:</strong>
+            {{ os.software.length > 0 ? os.software.join(', ') : "Nav instalēta" }}
+          </p>
         </div>
-      </div>
-
-      <!-- add modal -->
-      <div v-if="showModal" class="modal-overlay">
-        <div class="modal">
-          <h2>Pievienot jaunu datoru</h2>
-          <label>Nosaukums:</label>
-          <input v-model="newComputer.name" type="text" required />
-          
-          <label>Apraksts:</label>
-          <input v-model="newComputer.description" type="text" />
-          
-          <label>Rinda:</label>
-          <input v-model="newComputer.row" type="number" required />
-          
-          <label>Kolonna:</label>
-          <input v-model="newComputer.column" type="number" required />
-
-          <button @click="addComputer">Pievienot</button>
-          <button @click="showModal = false" class="close-button">Aizvērt</button>
-        </div>
-      </div>
-
-      <!-- edit modal -->
-      <div v-if="showEditModal" class="modal-overlay">
-        <div class="modal">
-          <h2>Rediģēt datoru</h2>
-          <label>Nosaukums:</label>
-          <input v-model="editedComputer.name" type="text" required />
-
-          <label>Apraksts:</label>
-          <input v-model="editedComputer.description" type="text" />
-
-          <label>Rinda:</label>
-          <input v-model="editedComputer.row" type="number" required />
-
-          <label>Kolonna:</label>
-          <input v-model="editedComputer.column" type="number" required />
-
-          <button @click="updateComputer">Saglabāt</button>
-          <button @click="showEditModal = false" class="close-button">Aizvērt</button>
-        </div>
+        <button @click="editComputer(computer)" class="edit-btn">Rediģēt</button>
+        <button @click="confirmDelete(computer.computer_id)" class="delete-btn">Dzēst</button>
       </div>
     </div>
 
+    <!-- add computer modal -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Pievienot jaunu datoru</h2>
+        <label>Nosaukums:</label>
+        <input v-model="newComputer.name" type="text" required />
+
+        <label>Apraksts:</label>
+        <input v-model="newComputer.description" type="text" />
+
+        <label>Rinda:</label>
+        <input v-model="newComputer.row" type="number" required />
+
+        <label>Kolonna:</label>
+        <input v-model="newComputer.column" type="number" required />
+
+        <button @click="addComputer">Pievienot</button>
+        <button @click="showModal = false" class="close-button">Aizvērt</button>
+      </div>
+    </div>
+
+    <!-- edit computer modal -->
+    <div v-if="showEditModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Rediģēt datoru</h2>
+        <label>Nosaukums:</label>
+        <input v-model="editedComputer.name" type="text" required />
+
+        <label>Apraksts:</label>
+        <input v-model="editedComputer.description" type="text" />
+
+        <label>Rinda:</label>
+        <input v-model="editedComputer.row" type="number" required />
+
+        <label>Kolonna:</label>
+        <input v-model="editedComputer.column" type="number" required />
+
+        <button @click="updateComputer">Saglabāt</button>
+        <button @click="showEditModal = false" class="close-button">Aizvērt</button>
+      </div>
+    </div>
+
+    <!-- Component Modal -->
+    <div v-if="showComponentModal" class="modal-overlay">
+      <div class="modal" style="min-width: 600px;">
+        <h2>Komponentes</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Nosaukums</th>
+              <th>Kategorija</th>
+              <th>Apraksts</th>
+              <th>Darbības</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="component in components" :key="component.component_id">
+              <td><input v-model="component.component_name" /></td>
+              <td><input v-model="component.category" /></td>
+              <td><input v-model="component.description" /></td>
+              <td>
+                <button @click="saveComponent(component)">Saglabāt</button>
+                <button @click="deleteComponent(component.component_id)">Dzēst</button>
+              </td>
+            </tr>
+
+            <!-- add new component -->
+            <tr>
+              <td><input v-model="newComponent.name" placeholder="Nosaukums" /></td>
+              <td><input v-model="newComponent.category" placeholder="Kategorija" /></td>
+              <td><input v-model="newComponent.description" placeholder="Apraksts" /></td>
+              <td><button @click="addComponent">Pievienot</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <button @click="showComponentModal = false" class="close-button">Aizvērt</button>
+      </div>
+    </div>
+
+  </div>
 
 
-  </template>
+
+</template>
 
 <style scoped>
 .computers-container {
@@ -185,8 +283,10 @@ onMounted(fetchComputers);
 /* Modal window */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -207,7 +307,9 @@ input {
   padding: 8px;
 }
 
-.close-button, .edit-btn, .delete-btn {
+.close-button,
+.edit-btn,
+.delete-btn {
   padding: 8px;
   margin: 5px;
   border: none;
@@ -232,4 +334,14 @@ input {
   background: #005f7a;
 }
 
+table,
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+th {
+  background-color: #f4f4f4;
+}
 </style>
