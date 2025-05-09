@@ -203,7 +203,7 @@ router.delete("/software/:id", authenticateUser, authorizeRole(["administrators"
   }
 });
 
-router.put("/softwares/:id", authenticateUser, authorizeRole(["administrators", "pārvaldnieks"]), async (req, res) => {
+router.put("/software/:id", authenticateUser, authorizeRole(["administrators", "pārvaldnieks"]), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, version } = req.body;

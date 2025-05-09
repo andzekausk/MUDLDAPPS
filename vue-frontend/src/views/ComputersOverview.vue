@@ -190,6 +190,60 @@ const deleteOS = async (osId) => {
   }
 };
 
+const showSoftwareModal = ref(false);
+const softwareList = ref([]);
+const newSoftware = ref({
+  name: "",
+  version: ""
+});
+
+const fetchSoftware = async () => {
+  try {
+    const response = await api.get("/software");
+    softwareList.value = response.data.software;
+  } catch (error) {
+    console.error("Failed to load software list:", error);
+  }
+};
+
+const addSoftware = async () => {
+  try {
+    await api.post("/software", newSoftware.value);
+    await fetchSoftware();
+    newSoftware.value = { name: "", version: "" };
+  } catch (error) {
+    console.error("Failed to add software:", error);
+  }
+};
+
+const saveSoftware = async (software) => {
+  if (!confirm("Vai tiešām vēlies rediģēt šo programmatūru?")) return;
+  try {
+    await api.put(`/software/${software.software_id}`, {
+      name: software.software_name,
+      version: software.version
+    });
+    fetchSoftware();
+    alert("Programmatūra veiksmīgi pārveidota.");
+  } catch (error) {
+    console.error("Failed to update software:", error);
+    alert("Neizdevās atjaunināt programmatūru.");
+  }
+};
+
+const deleteSoftware = async (softwareId) => {
+  if (!confirm("Vai tiešām vēlies dzēst šo programmatūru?")) return;
+
+  try {
+    await api.delete(`/software/${softwareId}`);
+    fetchSoftware();
+    alert("Programmatūra veiksmīgi izdzēsta.");
+  } catch (error) {
+    console.error("Failed to delete software:", error);
+    alert("Neizdevās dzēst programmatūru. Tā iespējams tiek izmantota.");
+  }
+};
+
 onMounted(fetchComputers);
 </script>
 
@@ -204,6 +258,9 @@ onMounted(fetchComputers);
     </button>
     <button @click="() => { showOSModal = true; fetchOS(); }" class="add-button">
       Operētājsistēmas
+    </button>
+    <button @click="() => { showSoftwareModal = true; fetchSoftware(); }" class="add-button">
+      Programmatūra
     </button>
     <div class="computer-cards">
       <div v-for="computer in computers" :key="computer.computer_id" class="computer-card">
@@ -335,6 +392,40 @@ onMounted(fetchComputers);
       </div>
     </div>
 
+    <!-- Software Modal -->
+    <div v-if="showSoftwareModal" class="modal-overlay">
+      <div class="modal" style="min-width: 600px;">
+        <h2>Programmatūra</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Nosaukums</th>
+              <th>Versija</th>
+              <th>Darbības</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="software in softwareList" :key="software.software_id">
+              <td><input v-model="software.software_name" /></td>
+              <td><input v-model="software.version" /></td>
+              <td>
+                <button @click="saveSoftware(software)">Saglabāt</button>
+                <button @click="deleteSoftware(software.software_id)">Dzēst</button>
+              </td>
+            </tr>
+
+            <!-- Add new software -->
+            <tr>
+              <td><input v-model="newSoftware.name" placeholder="Nosaukums" /></td>
+              <td><input v-model="newSoftware.version" placeholder="Versija" /></td>
+              <td><button @click="addSoftware">Pievienot</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <button @click="showSoftwareModal = false" class="close-button">Aizvērt</button>
+      </div>
+    </div>
 
   </div>
 

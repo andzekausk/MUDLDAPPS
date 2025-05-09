@@ -96,7 +96,7 @@ async function updateComputer(computerId, { name, description, row, column }) {
 async function getComponents() {
   const [rows] = await pool.query(`
     SELECT component_id, name as component_name, category, description
-    FROM components;
+    FROM components ORDER BY component_name ASC;
   `);
   return rows;
 }
@@ -144,7 +144,7 @@ async function updateComponent(componentId, { name, category, description }) {
 async function getOS() {
   const [rows] = await pool.query(`
     SELECT os_id, name as os_name, version
-    FROM os;
+    FROM os ORDER BY os_name ASC;
   `);
   return rows;
 }
@@ -191,28 +191,49 @@ async function updateOS(osId, { name, version }) {
 
 const getSoftware = async () => {
   const [rows] = await pool.query(`
-    SELECT * FROM software ORDER BY name ASC;
+    SELECT software_id, name as software_name, version
+    FROM software ORDER BY software_name ASC;
     `);
   return rows;
 };
 
 const addSoftware = async ({ name, version }) => {
   const [result] = await pool.query(`
-    INSERT INTO software (name, version) VALUES (?, ?);
+    INSERT INTO software (name, version) 
+    VALUES (?, ?);
   `, [name, version]);
-  return result.insertId;
+  return { software_id: result.insertId, name, version };
 };
 
 const updateSoftware = async (softwareId, { name, version }) => {
-  await pool.query(`
-    UPDATE software SET name = ?, version = ? WHERE software_id = ?;
+  try {
+    console.log("Updating software:", { softwareId, name, version });
+    await pool.query(`
+      UPDATE software SET name = ?, version = ?
+      WHERE software_id = ?;
     `, [name, version, softwareId]);
+  } catch (error) {
+    console.error("Error updating software:", error);
+    throw error;
+  }
 };
 
 const deleteSoftware = async (softwareId) => {
-  await pool.query(`
-    DELETE FROM software WHERE software_id = ?;
+  const [used] = await pool.query(`
+    SELECT COUNT(*) as count FROM computer_os_software WHERE software_id = ?
+  `, [softwareId]);
+
+  if (used[0].count > 0) {
+    throw new Error("Software is in use and cannot be deleted.");
+  }
+  try {
+    await pool.query(`
+      DELETE FROM software WHERE software_id = ?;
     `, [softwareId]);
+  } catch (error) {
+    console.error("Error deleting OS:", error);
+    throw error;
+  }
 };
 
 module.exports = {
