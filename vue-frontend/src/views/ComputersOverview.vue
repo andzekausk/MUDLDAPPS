@@ -21,14 +21,6 @@ const editedComputer = ref({
   column: "",
 });
 
-const showComponentModal = ref(false);
-const components = ref([]);
-const newComponent = ref({
-  name: "",
-  category: "",
-  description: "",
-});
-
 const fetchComputers = async () => {
   try {
     const response = await api.get("/computers");
@@ -88,6 +80,14 @@ const updateComputer = async () => {
   }
 };
 
+const showComponentModal = ref(false);
+const components = ref([]);
+const newComponent = ref({
+  name: "",
+  category: "",
+  description: "",
+});
+
 const fetchComponents = async () => {
   try {
     const response = await api.get("/components");
@@ -136,6 +136,60 @@ const deleteComponent = async (componentId) => {
   }
 };
 
+const showOSModal = ref(false);
+const osList = ref([]);
+const newOS = ref({
+  name: "",
+  version: ""
+});
+
+const fetchOS = async () => {
+  try {
+    const response = await api.get("/os");
+    osList.value = response.data.os;
+  } catch (error) {
+    console.error("Failed to load OS list:", error);
+  }
+};
+
+const addOS = async () => {
+  try {
+    await api.post("/os", newOS.value);
+    await fetchOS();
+    newOS.value = { name: "", version: "" };
+  } catch (error) {
+    console.error("Failed to add OS:", error);
+  }
+};
+
+const saveOS = async (os) => {
+  if (!confirm("Vai tiešām vēlies rediģēt šo OS?")) return;
+  try {
+    await api.put(`/os/${os.os_id}`, {
+      name: os.os_name,
+      version: os.version
+    });
+    fetchOS();
+    alert("OS veiksmīgi pārveidota.");
+  } catch (error) {
+    console.error("Failed to update OS:", error);
+    alert("Neizdevās atjaunināt OS.");
+  }
+};
+
+const deleteOS = async (osId) => {
+  if (!confirm("Vai tiešām vēlies dzēst šo OS?")) return;
+
+  try {
+    await api.delete(`/os/${osId}`);
+    fetchOS();
+    alert("OS veiksmīgi izdzēsta.");
+  } catch (error) {
+    console.error("Failed to delete OS:", error);
+    alert("Neizdevās dzēst OS. Tā iespējams tiek izmantota.");
+  }
+};
+
 onMounted(fetchComputers);
 </script>
 
@@ -148,7 +202,9 @@ onMounted(fetchComputers);
     <button @click="() => { showComponentModal = true; fetchComponents(); }" class="add-button">
       Komponentes
     </button>
-
+    <button @click="() => { showOSModal = true; fetchOS(); }" class="add-button">
+      Operētājsistēmas
+    </button>
     <div class="computer-cards">
       <div v-for="computer in computers" :key="computer.computer_id" class="computer-card">
         <h2>{{ computer.computer_name }}</h2>
@@ -243,6 +299,42 @@ onMounted(fetchComputers);
         <button @click="showComponentModal = false" class="close-button">Aizvērt</button>
       </div>
     </div>
+
+    <!-- OS Modal -->
+    <div v-if="showOSModal" class="modal-overlay">
+      <div class="modal" style="min-width: 600px;">
+        <h2>Operētājsistēmas</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Nosaukums</th>
+              <th>Versija</th>
+              <th>Darbības</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="os in osList" :key="os.os_id">
+              <td><input v-model="os.os_name" /></td>
+              <td><input v-model="os.version" /></td>
+              <td>
+                <button @click="saveOS(os)">Saglabāt</button>
+                <button @click="deleteOS(os.os_id)">Dzēst</button>
+              </td>
+            </tr>
+
+            <!-- Add new OS -->
+            <tr>
+              <td><input v-model="newOS.name" placeholder="Nosaukums" /></td>
+              <td><input v-model="newOS.version" placeholder="Versija" /></td>
+              <td><button @click="addOS">Pievienot</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <button @click="showOSModal = false" class="close-button">Aizvērt</button>
+      </div>
+    </div>
+
 
   </div>
 
