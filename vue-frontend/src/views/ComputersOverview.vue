@@ -5,6 +5,8 @@ import api from "../services/api";
 const computers = ref([]);
 const showModal = ref(false);
 const showEditModal = ref(false);
+const selectedComponentIds = ref([]);
+
 
 const newComputer = ref({
   name: "",
@@ -59,7 +61,7 @@ const confirmDelete = (computerId) => {
 };
 
 
-const editComputer = (computer) => {
+const editComputer = async (computer) => {
   editedComputer.value = {
     computer_id: computer.computer_id,
     name: computer.computer_name,
@@ -68,11 +70,24 @@ const editComputer = (computer) => {
     column: computer.comp_col
   };
   showEditModal.value = true;
+
+  try {
+    const response = await api.get(`/computers/${computer.computer_id}/components`);
+    selectedComponentIds.value = response.data.components.map(c => c.component_id);
+  } catch (err) {
+    console.error("Failed to load computer components:", err);
+    selectedComponentIds.value = [];
+  }
+
+  await fetchComponents();
 };
 
 const updateComputer = async () => {
   try {
     await api.put(`/computers/${editedComputer.value.computer_id}`, editedComputer.value);
+    await api.post(`/computers/${editedComputer.value.computer_id}/components`, {
+      componentIds: selectedComponentIds.value
+    });
     showEditModal.value = false;
     fetchComputers();
   } catch (error) {
@@ -313,10 +328,17 @@ onMounted(fetchComputers);
 
         <label>Kolonna:</label>
         <input v-model="editedComputer.column" type="number" required />
+        <label>Komponentes:</label>
+        <select v-model="selectedComponentIds" multiple>
+          <option v-for="component in components" :key="component.component_id" :value="component.component_id">
+            {{ component.component_name }}
+          </option>
+        </select>
 
         <button @click="updateComputer">Saglabāt</button>
         <button @click="showEditModal = false" class="close-button">Aizvērt</button>
       </div>
+
     </div>
 
     <!-- Component Modal -->

@@ -189,7 +189,7 @@ async function updateOS(osId, { name, version }) {
   }
 }
 
-const getSoftware = async () => {
+async function getSoftware() {
   const [rows] = await pool.query(`
     SELECT software_id, name as software_name, version
     FROM software ORDER BY software_name ASC;
@@ -197,7 +197,7 @@ const getSoftware = async () => {
   return rows;
 };
 
-const addSoftware = async ({ name, version }) => {
+async function addSoftware({ name, version }) {
   const [result] = await pool.query(`
     INSERT INTO software (name, version) 
     VALUES (?, ?);
@@ -205,7 +205,7 @@ const addSoftware = async ({ name, version }) => {
   return { software_id: result.insertId, name, version };
 };
 
-const updateSoftware = async (softwareId, { name, version }) => {
+async function updateSoftware(softwareId, { name, version }) {
   try {
     console.log("Updating software:", { softwareId, name, version });
     await pool.query(`
@@ -218,7 +218,7 @@ const updateSoftware = async (softwareId, { name, version }) => {
   }
 };
 
-const deleteSoftware = async (softwareId) => {
+async function deleteSoftware(softwareId) {
   const [used] = await pool.query(`
     SELECT COUNT(*) as count FROM computer_os_software WHERE software_id = ?
   `, [softwareId]);
@@ -236,6 +236,30 @@ const deleteSoftware = async (softwareId) => {
   }
 };
 
+async function getComputerComponentsByComputerId(computerId) {
+  const [rows] = await pool.query(`
+    SELECT c.component_id, c.name, c.category, c.description
+    FROM components c
+    JOIN computer_components cc ON cc.component_id = c.component_id
+    WHERE cc.computer_id = ?
+  `, [computerId]);
+  return rows;
+};
+
+async function addComputerComponent( computerId, componentId ) {
+  await pool.query(`
+    INSERT INTO computer_components (computer_id, component_id)
+    VALUES (?, ?);
+  `, [computerId, componentId]);
+};
+
+async function deleteComputerComponent({ computerId, componentId }) {
+  await pool.query(`
+    DELETE FROM computer_components 
+    WHERE computer_id = ? AND component_id = ?;
+  `, [computerId, componentId]);
+};
+
 module.exports = {
   getComputers,
   addComputer,
@@ -246,6 +270,9 @@ module.exports = {
   addComponent,
   deleteComponent,
   updateComponent,
+  getComputerComponentsByComputerId,
+  addComputerComponent,
+  deleteComputerComponent,
 
   getOS,
   addOS,

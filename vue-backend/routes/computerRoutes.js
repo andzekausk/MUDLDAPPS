@@ -9,6 +9,9 @@ const {
   addComponent,
   deleteComponent,
   updateComponent,
+  getComputerComponentsByComputerId,
+  addComputerComponent,
+  deleteComputerComponent,
 
   getOS,
   addOS,
@@ -116,6 +119,38 @@ router.put("/components/:id", authenticateUser, authorizeRole(["administrators",
   } catch (error) {
     console.error("Error updating component:", error);
     res.status(500).json({ message: "Error updating component" });
+  }
+});
+
+router.get('/computers/:id/components', async (req, res) => {
+  try {
+    const computerComponents = await getComputerComponentsByComputerId(req.params.id);
+    res.json(computerComponents);
+  } catch (error) {
+    console.error("Error fetching computer components:", error);
+    res.status(500).json({ message: "Error fetching computer components" });
+  }
+});
+
+router.post('/computers/:id/components', async (req, res) => {
+  try {
+    const { componentId } = req.body;
+    const computerComponentId = await addComputerComponent(req.params.id, componentId);
+    res.status(201).json({ message: "Component added to computer!", computerComponentId });
+  } catch (error) {
+    console.error("Error adding component to computer:", error);
+    res.status(500).json({ message: "Error adding component to computer" });
+  }
+});
+
+router.delete('/computers/:id/components/:componentId', async (req, res) => {
+  res.sendStatus(200);
+  try {
+    await deleteComputerComponent(req.params.id, req.params.componentId);
+    res.json({ message: "Component deleted from computer" });
+  } catch (error) {
+    console.error("Error deleting component from computer:", error);
+    res.status(500).json({ message: "Error deleting component from computer" });
   }
 });
 
